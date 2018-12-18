@@ -8,5 +8,10 @@
 	<true/>
 	<key>KeepAlive</key>
 	<true/>
+	<key>MachServices</key>
+	<dict>
+		<key>mo.darren.optimus.player.mac.airplay-enabler</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
