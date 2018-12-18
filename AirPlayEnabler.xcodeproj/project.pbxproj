@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		E65DDE9021C0679D00FB35E4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65DDE8F21C0679D00FB35E4 /* main.swift */; };
+		E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */; };
+		E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */; };
+		E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */; };
+		E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,6 +31,13 @@
 		E65DDE8F21C0679D00FB35E4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		E65DDE9D21C0684C00FB35E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E65DDE9E21C06A8B00FB35E4 /* Launchd.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
+		E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeInjector.swift; sourceTree = "<group>"; };
+		E6B1F2B021C1FD7E00FB35E4 /* AirPlayEnabler-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirPlayEnabler-Bridging-Header.h"; sourceTree = "<group>"; };
+		E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TaskVM.m; sourceTree = "<group>"; };
+		E6B1F2B321C1FD9A00FB35E4 /* TaskVM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TaskVM.h; sourceTree = "<group>"; };
+		E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableHeaderContext+ByteOrder.swift"; sourceTree = "<group>"; };
+		E6B1F2BD21C5C33B00FB35E4 /* ActivityTracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityTracing.h; sourceTree = "<group>"; };
+		E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityTracing.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +71,13 @@
 			isa = PBXGroup;
 			children = (
 				E65DDE8F21C0679D00FB35E4 /* main.swift */,
+				E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */,
+				E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */,
+				E6B1F2B321C1FD9A00FB35E4 /* TaskVM.h */,
+				E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */,
+				E6B1F2BD21C5C33B00FB35E4 /* ActivityTracing.h */,
+				E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */,
+				E6B1F2B021C1FD7E00FB35E4 /* AirPlayEnabler-Bridging-Header.h */,
 				E65DDE9E21C06A8B00FB35E4 /* Launchd.plist */,
 				E65DDE9D21C0684C00FB35E4 /* Info.plist */,
 			);
@@ -98,6 +116,7 @@
 				TargetAttributes = {
 					E65DDE8B21C0679D00FB35E4 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1010;
 					};
 				};
 			};
@@ -123,7 +142,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */,
+				E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */,
 				E65DDE9021C0679D00FB35E4 /* main.swift in Sources */,
+				E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */,
+				E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,11 +271,17 @@
 		E65DDE9421C0679D00FB35E4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = PVLQ49LAH3;
 				INFOPLIST_FILE = "$(SRCROOT)/AirPlayEnabler/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
@@ -263,6 +292,8 @@
 				PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "AirPlayEnabler/AirPlayEnabler-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
@@ -270,11 +301,17 @@
 		E65DDE9521C0679D00FB35E4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = PVLQ49LAH3;
 				INFOPLIST_FILE = "$(SRCROOT)/AirPlayEnabler/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
@@ -285,6 +322,7 @@
 				PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "AirPlayEnabler/AirPlayEnabler-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Release;

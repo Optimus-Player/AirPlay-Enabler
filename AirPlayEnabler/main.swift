@@ -6,6 +6,15 @@
 //  Copyright © 2018 Darren Mo. All rights reserved.
 //
 
+import Dispatch
 import os
 
-os_log("AirPlayEnabler is running.")
+os_log("AirPlayEnabler has started.")
+
+DispatchQueue.main.async {
+   OSInitiateActivity(named: "Initial Code Injection", flags: []) {
+      try? CodeInjector.shared.injectCode()
+   }
+}
+
+dispatchMain()
