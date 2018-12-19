@@ -12,10 +12,8 @@ import os
 
 os_log("AirPlayEnabler has started.")
 
-guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-   preconditionFailure("Main bundle does not have bundle identifier.")
-}
-let xpcListener = NSXPCListener(machServiceName: bundleIdentifier)
+let machServiceName = PrivilegedHelperInfo.shared.machServiceName
+let xpcListener = NSXPCListener(machServiceName: machServiceName)
 
 let xpcService = XPCService()
 xpcListener.delegate = xpcService
@@ -26,7 +24,7 @@ DispatchQueue.main.async {
    }
 
    os_log("Starting XPC listener for Mach service `%{public}@`.",
-          bundleIdentifier)
+          machServiceName)
    xpcListener.resume()
 }
 
