@@ -19,6 +19,14 @@ public protocol AirPlayEnablerInterface {
    func isPrivilegedHelperRunning(withReply reply: @escaping () -> Void)
 
    /**
+    Gets the privileged helper version.
+
+    - Parameter reply: The XPC reply block.
+    - Parameter version: The privileged helper version.
+    */
+   func getPrivilegedHelperVersion(withReply reply: @escaping (_ version: PrivilegedHelperVersion) -> Void)
+
+   /**
     Deletes the privileged helper files, unregisters the privileged helper in launchd,
     and terminates the running process.
 

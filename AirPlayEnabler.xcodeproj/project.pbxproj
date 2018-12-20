@@ -20,6 +20,8 @@
 		E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */; };
 		E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */; };
 		E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */; };
+		E6FAA06421CC269200FB35E4 /* PrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */; };
+		E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +66,8 @@
 		E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableHeaderContext+ByteOrder.swift"; sourceTree = "<group>"; };
 		E6B1F2BD21C5C33B00FB35E4 /* ActivityTracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityTracing.h; sourceTree = "<group>"; };
 		E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityTracing.m; sourceTree = "<group>"; };
+		E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivilegedHelperVersion.swift; sourceTree = "<group>"; };
+		E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+GetPrivilegedHelperVersion.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,7 @@
 			children = (
 				E688AE5421C960FB00FB35E4 /* AirPlayEnablerInterface.swift */,
 				E688AE7421C97F2400FB35E4 /* AirPlayEnablerInterfaceError.swift */,
+				E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */,
 			);
 			path = AirPlayEnablerInterface;
 			sourceTree = "<group>";
@@ -153,6 +158,7 @@
 				E688AE5221C8AD5500FB35E4 /* XPCService.swift */,
 				E688AE5621C9637B00FB35E4 /* XPCServiceImplementation.swift */,
 				E69A58C321CACFC500FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift */,
+				E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */,
 				E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */,
 			);
 			path = "XPC Service";
@@ -255,6 +261,7 @@
 				E688AE5721C9637B00FB35E4 /* XPCServiceImplementation.swift in Sources */,
 				E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */,
 				E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */,
+				E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */,
 				E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */,
 				E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */,
 				E688AE5321C8AD5500FB35E4 /* XPCService.swift in Sources */,
@@ -265,6 +272,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E6FAA06421CC269200FB35E4 /* PrivilegedHelperVersion.swift in Sources */,
 				E688AE7521C97F2400FB35E4 /* AirPlayEnablerInterfaceError.swift in Sources */,
 				E688AE6521C9775D00FB35E4 /* AirPlayEnablerInterface.swift in Sources */,
 			);
