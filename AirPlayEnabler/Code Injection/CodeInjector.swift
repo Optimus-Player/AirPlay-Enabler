@@ -34,6 +34,8 @@ class CodeInjector {
       case failedToFindTargetInstructions
       case failedToModifyTargetInstructionsMemoryProtection
       case failedToReplaceTargetInstructions
+      case failedToRestoreTargetInstructions
+      case failedToRestoreTargetInstructionsMemoryProtection
    }
    private(set) var latestError: InjectError?
 
@@ -135,6 +137,33 @@ class CodeInjector {
       }
 
       os_log("Successfully finished code injection.")
+   }
+
+   func removeCodeInjection() throws {
+      try serialQueue.sync {
+         try _removeCodeInjection()
+      }
+   }
+
+   private func _removeCodeInjection() throws {
+      os_log("Starting removal of code injection.")
+
+      do {
+         do {
+            let executableHeaderContext = try self.executableHeaderContext()
+            let patch = CodeInjector.makePatch()
+            try CodeInjector.unapply(patch,
+                                     toExecutableDescribedBy: executableHeaderContext)
+         } catch {
+            os_log(.error, "Failed to remove code injection: %{public}@.", String(describing: error))
+            throw error
+         }
+      } catch let error as InjectError {
+         latestError = error
+         throw error
+      }
+
+      os_log("Successfully finished removing code injection.")
    }
 }
 
@@ -358,6 +387,47 @@ extension CodeInjector {
                    status)
             throw InjectError.failedToReplaceTargetInstructions
          }
+      }
+   }
+
+   private static func unapply(_ patch: Patch,
+                               toExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws {
+      guard try !needsPatch(patch, forExecutableDescribedBy: executableHeaderContext) else {
+         os_log("Target instructions have not been patched; skipping.")
+         return
+      }
+
+      let addressInTaskSpace = patch.addressInTaskSpace(aslrOffset: executableHeaderContext.aslrOffset)
+      os_log(.info,
+             "Unapplying patch to task memory at address 0x%llx.",
+             addressInTaskSpace)
+
+      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
+      let targetInstructions = patch.targetInstructions(in: executableFileByteOrder)
+
+      try targetInstructions.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
+         let status = mach_vm_write(executableHeaderContext.taskVMMap,
+                                    addressInTaskSpace,
+                                    vm_offset_t(bitPattern: pointer),
+                                    mach_msg_type_number_t(targetInstructions.count))
+         if status != KERN_SUCCESS {
+            os_log(.error,
+                   "mach_vm_write failed: %d.",
+                   status)
+            throw InjectError.failedToRestoreTargetInstructions
+         }
+      }
+
+      let status = mach_vm_protect(executableHeaderContext.taskVMMap,
+                                   addressInTaskSpace,
+                                   mach_vm_size_t(targetInstructions.count),
+                                   0,  // set_maximum: boolean_t
+                                   VM_PROT_READ | VM_PROT_EXECUTE)
+      if status != KERN_SUCCESS {
+         os_log(.error,
+                "mach_vm_protect failed: %d.",
+                status)
+         throw InjectError.failedToRestoreTargetInstructionsMemoryProtection
       }
    }
 }

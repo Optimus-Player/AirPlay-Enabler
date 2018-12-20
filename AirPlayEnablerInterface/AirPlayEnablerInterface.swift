@@ -51,6 +51,7 @@ public enum UninstallPrivilegedHelperError: Int, AirPlayEnablerInterfaceError {
    case failedToFindProgramPathInLaunchdPlist
    case failedToDeleteLaunchdPlist
    case failedToDeleteProgram
+   case failedToRemoveCodeInjection
    case failedToRunLaunchctlProcess
    case launchctlFailed
    case timedOutWaitingForLaunchdToKillPrivilegedHelper

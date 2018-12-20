@@ -26,6 +26,7 @@ extension XPCServiceImplementation {
 
          try XPCServiceImplementation.deleteLaunchdPlist(at: launchdPlistPath)
          try XPCServiceImplementation.deleteProgram(at: programPath)
+         try XPCServiceImplementation.removeCodeInjection()
          try XPCServiceImplementation.unregisterPrivilegedHelperInLaunchd()
       } catch let error as UninstallPrivilegedHelperError {
          let nsError = NSError(xpcServiceError: error)
@@ -118,6 +119,19 @@ extension XPCServiceImplementation {
 
       os_log("Deleted `%{public}@`.",
              programPath)
+   }
+
+   private static func removeCodeInjection() throws {
+      do {
+         try CodeInjector.shared.removeCodeInjection()
+      } catch {
+         os_log(.error,
+                "Failed to remove code injection: %{public}@.",
+                String(describing: error))
+         throw UninstallPrivilegedHelperError.failedToRemoveCodeInjection
+      }
+
+      os_log("Removed code injection.")
    }
 
    private static let timeoutInSecondsWaitingForLaunchdToKillUs: UInt32 = 5
