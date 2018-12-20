@@ -20,9 +20,16 @@ struct PrivilegedHelperInfo {
          preconditionFailure("Main bundle does not have bundle identifier.")
       }
 
+      let authorizedClientsKey = "SMAuthorizedClients"
+      guard let clientCodeSigningRequirements = Bundle.main.infoDictionary?[authorizedClientsKey] as? [String] else {
+         preconditionFailure("Valid `\(authorizedClientsKey)` property not found in main bundle info dictionary.")
+      }
+
       self.machServiceName = bundleIdentifier
       self.launchdLabel = bundleIdentifier
       self.helperName = bundleIdentifier
+
+      self.clientCodeSigningRequirements = clientCodeSigningRequirements
    }
 
    // MARK: - Properties
@@ -30,4 +37,6 @@ struct PrivilegedHelperInfo {
    let machServiceName: String
    let launchdLabel: String
    let helperName: String
+
+   let clientCodeSigningRequirements: [String]
 }

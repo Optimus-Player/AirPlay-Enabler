@@ -15,10 +15,7 @@ class XPCService: NSObject, NSXPCListenerDelegate {
    // MARK: - Initialization
 
    override init() {
-      guard let codeSigningRequirements = Bundle.main.infoDictionary?["SMAuthorizedClients"] as? [String] else {
-         preconditionFailure("Valid `SMAuthorizedClients` property not found in main bundle info dictionary.")
-      }
-      self.codeSigningRequirements = codeSigningRequirements.map { requirementText in
+      self.codeSigningRequirements = PrivilegedHelperInfo.shared.clientCodeSigningRequirements.map { requirementText in
          var requirement: SecRequirement!
          var unmanagedError: Unmanaged<CFError>!
          let status = SecRequirementCreateWithStringAndErrors(requirementText as CFString,
