@@ -78,12 +78,14 @@ class CodeInjector {
 
    // MARK: - Patches
 
-   private static func makePatch() -> Patch {
-      return Patch(addressInExecutableFile: 0x10000315f,
-                   targetInstructionsInLittleEndian: [Data([0x45, 0x85, 0xe4]),
-                                                      Data([0x74, 0x69])],
-                   replacementInstructionsInLittleEndian: [Data([0x45, 0x31, 0xe4]),
-                                                           Data([0xeb, 0x69])])
+   private static func makePatches() -> [Patch] {
+      return [
+         Patch(addressInExecutableFile: 0x10000315f,
+               targetInstructionsInLittleEndian: [Data([0x45, 0x85, 0xe4]),
+                                                  Data([0x74, 0x69])],
+               replacementInstructionsInLittleEndian: [Data([0x45, 0x31, 0xe4]),
+                                                       Data([0xeb, 0x69])])
+      ]
    }
 
    // MARK: - Checking Activation Status
@@ -99,9 +101,17 @@ class CodeInjector {
    private func _isCodeInjectionActive() -> Bool {
       do {
          let executableHeaderContext = try self.executableHeaderContext()
-         let patch = CodeInjector.makePatch()
-         return try !CodeInjector.needsPatch(patch,
-                                             forExecutableDescribedBy: executableHeaderContext)
+
+         let patches = CodeInjector.makePatches()
+         for patch in patches {
+            let needsPatch = try CodeInjector.needsPatch(patch,
+                                                         forExecutableDescribedBy: executableHeaderContext)
+            if needsPatch {
+               return false
+            }
+         }
+
+         return true
       } catch {
          os_log(.error,
                 "Failed to check code injection activation status: %{public}@; assuming code injection is inactive.",
@@ -124,9 +134,12 @@ class CodeInjector {
       do {
          do {
             let executableHeaderContext = try self.executableHeaderContext()
-            let patch = CodeInjector.makePatch()
-            try CodeInjector.apply(patch,
-                                   toExecutableDescribedBy: executableHeaderContext)
+
+            let patches = CodeInjector.makePatches()
+            for patch in patches {
+               try CodeInjector.apply(patch,
+                                      toExecutableDescribedBy: executableHeaderContext)
+            }
          } catch {
             os_log(.error, "Failed to inject code: %{public}@.", String(describing: error))
             throw error
@@ -151,9 +164,12 @@ class CodeInjector {
       do {
          do {
             let executableHeaderContext = try self.executableHeaderContext()
-            let patch = CodeInjector.makePatch()
-            try CodeInjector.unapply(patch,
-                                     toExecutableDescribedBy: executableHeaderContext)
+
+            let patches = CodeInjector.makePatches()
+            for patch in patches.lazy.reversed() {
+               try CodeInjector.unapply(patch,
+                                        toExecutableDescribedBy: executableHeaderContext)
+            }
          } catch {
             os_log(.error, "Failed to remove code injection: %{public}@.", String(describing: error))
             throw error
