@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		E65DDE9021C0679D00FB35E4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65DDE8F21C0679D00FB35E4 /* main.swift */; };
 		E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */; };
+		E667BBFD21CD73DE00FB35E4 /* Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BBFC21CD73DE00FB35E4 /* Patch.swift */; };
+		E667BBFF21CD745F00FB35E4 /* MemoryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BBFE21CD745F00FB35E4 /* MemoryData.swift */; };
+		E667BC0321CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */; };
+		E667BC0521CDC41A00FB35E4 /* Patch+DynamicCreation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */; };
+		E667BC0A21CDC51400FB35E4 /* Patch+MacOS10_14.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */; };
+		E667BC0C21CDCB4A00FB35E4 /* Patch+Requirement.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0B21CDCB4A00FB35E4 /* Patch+Requirement.swift */; };
 		E688AE5321C8AD5500FB35E4 /* XPCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5221C8AD5500FB35E4 /* XPCService.swift */; };
 		E688AE5721C9637B00FB35E4 /* XPCServiceImplementation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5621C9637B00FB35E4 /* XPCServiceImplementation.swift */; };
 		E688AE6521C9775D00FB35E4 /* AirPlayEnablerInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5421C960FB00FB35E4 /* AirPlayEnablerInterface.swift */; };
@@ -52,6 +58,12 @@
 		E65DDE9D21C0684C00FB35E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E65DDE9E21C06A8B00FB35E4 /* Launchd.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
 		E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeInjector.swift; sourceTree = "<group>"; };
+		E667BBFC21CD73DE00FB35E4 /* Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patch.swift; sourceTree = "<group>"; };
+		E667BBFE21CD745F00FB35E4 /* MemoryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryData.swift; sourceTree = "<group>"; };
+		E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableHeaderContext+AddressInTaskSpace.swift"; sourceTree = "<group>"; };
+		E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+DynamicCreation.swift"; sourceTree = "<group>"; };
+		E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+MacOS10_14.swift"; sourceTree = "<group>"; };
+		E667BC0B21CDCB4A00FB35E4 /* Patch+Requirement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+Requirement.swift"; sourceTree = "<group>"; };
 		E688AE5221C8AD5500FB35E4 /* XPCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCService.swift; sourceTree = "<group>"; };
 		E688AE5421C960FB00FB35E4 /* AirPlayEnablerInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayEnablerInterface.swift; sourceTree = "<group>"; };
 		E688AE5621C9637B00FB35E4 /* XPCServiceImplementation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCServiceImplementation.swift; sourceTree = "<group>"; };
@@ -121,6 +133,14 @@
 			path = AirPlayEnabler;
 			sourceTree = "<group>";
 		};
+		E667BC0621CDC41F00FB35E4 /* Patches */ = {
+			isa = PBXGroup;
+			children = (
+				E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */,
+			);
+			path = Patches;
+			sourceTree = "<group>";
+		};
 		E688AE5D21C9774B00FB35E4 /* AirPlayEnablerInterface */ = {
 			isa = PBXGroup;
 			children = (
@@ -145,6 +165,12 @@
 			isa = PBXGroup;
 			children = (
 				E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */,
+				E667BBFC21CD73DE00FB35E4 /* Patch.swift */,
+				E667BC0B21CDCB4A00FB35E4 /* Patch+Requirement.swift */,
+				E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */,
+				E667BC0621CDC41F00FB35E4 /* Patches */,
+				E667BBFE21CD745F00FB35E4 /* MemoryData.swift */,
+				E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */,
 				E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */,
 				E6B1F2B321C1FD9A00FB35E4 /* TaskVM.h */,
 				E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */,
@@ -255,15 +281,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */,
+				E667BC0A21CDC51400FB35E4 /* Patch+MacOS10_14.swift in Sources */,
 				E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */,
+				E667BC0521CDC41A00FB35E4 /* Patch+DynamicCreation.swift in Sources */,
 				E69A58C421CACFC600FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift in Sources */,
 				E65DDE9021C0679D00FB35E4 /* main.swift in Sources */,
 				E688AE5721C9637B00FB35E4 /* XPCServiceImplementation.swift in Sources */,
 				E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */,
 				E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */,
 				E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */,
+				E667BC0321CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift in Sources */,
+				E667BBFF21CD745F00FB35E4 /* MemoryData.swift in Sources */,
 				E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */,
+				E667BC0C21CDCB4A00FB35E4 /* Patch+Requirement.swift in Sources */,
 				E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */,
+				E667BBFD21CD73DE00FB35E4 /* Patch.swift in Sources */,
 				E688AE5321C8AD5500FB35E4 /* XPCService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

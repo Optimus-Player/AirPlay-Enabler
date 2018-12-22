@@ -9,7 +9,6 @@
 import Darwin
 import Foundation
 import MachO
-import os
 
 class CodeInjector {
    // MARK: - Initialization
@@ -30,12 +29,8 @@ class CodeInjector {
       case tooManyTargetProcesses
       case failedToAttachToTargetProcess
       case failedToReadExecutableHeader
-      case failedToReadTargetProcessMemory
-      case failedToFindTargetInstructions
-      case failedToModifyTargetInstructionsMemoryProtection
-      case failedToReplaceTargetInstructions
-      case failedToRestoreTargetInstructions
-      case failedToRestoreTargetInstructionsMemoryProtection
+      case failedToApplyPatch(patchError: Patch.PatchError)
+      case failedToUnapplyPatch(patchError: Patch.PatchError)
    }
    private(set) var latestError: InjectError?
 
@@ -76,18 +71,6 @@ class CodeInjector {
       return executableHeaderContext
    }
 
-   // MARK: - Patches
-
-   private static func makePatches() -> [Patch] {
-      return [
-         Patch(addressInExecutableFile: 0x10000315f,
-               targetInstructionsInLittleEndian: [Data([0x45, 0x85, 0xe4]),
-                                                  Data([0x74, 0x69])],
-               replacementInstructionsInLittleEndian: [Data([0x45, 0x31, 0xe4]),
-                                                       Data([0xeb, 0x69])])
-      ]
-   }
-
    // MARK: - Checking Activation Status
 
    func isCodeInjectionActive() -> Bool {
@@ -102,10 +85,9 @@ class CodeInjector {
       do {
          let executableHeaderContext = try self.executableHeaderContext()
 
-         let patches = CodeInjector.makePatches()
+         let patches = Patch.makePatchesForCurrentOperatingSystem()
          for patch in patches {
-            let needsPatch = try CodeInjector.needsPatch(patch,
-                                                         forExecutableDescribedBy: executableHeaderContext)
+            let needsPatch = try patch.needsPatch(forExecutableDescribedBy: executableHeaderContext)
             if needsPatch {
                return false
             }
@@ -135,10 +117,9 @@ class CodeInjector {
          do {
             let executableHeaderContext = try self.executableHeaderContext()
 
-            let patches = CodeInjector.makePatches()
+            let patches = Patch.makePatchesForCurrentOperatingSystem()
             for patch in patches {
-               try CodeInjector.apply(patch,
-                                      toExecutableDescribedBy: executableHeaderContext)
+               try patch.apply(toExecutableDescribedBy: executableHeaderContext)
             }
          } catch {
             os_log(.error, "Failed to inject code: %{public}@.", String(describing: error))
@@ -165,10 +146,9 @@ class CodeInjector {
          do {
             let executableHeaderContext = try self.executableHeaderContext()
 
-            let patches = CodeInjector.makePatches()
+            let patches = Patch.makePatchesForCurrentOperatingSystem()
             for patch in patches.lazy.reversed() {
-               try CodeInjector.unapply(patch,
-                                        toExecutableDescribedBy: executableHeaderContext)
+               try patch.unapply(toExecutableDescribedBy: executableHeaderContext)
             }
          } catch {
             os_log(.error, "Failed to remove code injection: %{public}@.", String(describing: error))
@@ -251,199 +231,5 @@ extension CodeInjector {
       }
 
       return executableHeaderContext
-   }
-
-   private struct Patch {
-      init(addressInExecutableFile: mach_vm_address_t,
-           targetInstructionsInLittleEndian: [Data],
-           replacementInstructionsInLittleEndian: [Data]) {
-         self.addressInExecutableFile = addressInExecutableFile
-         self.targetInstructionsInLittleEndian = targetInstructionsInLittleEndian
-         self.replacementInstructionsInLittleEndian = replacementInstructionsInLittleEndian
-
-         precondition(targetInstructionsByteCount == replacementInstructionsByteCount)
-      }
-
-      private let addressInExecutableFile: mach_vm_address_t
-
-      func addressInTaskSpace(aslrOffset: mach_vm_offset_t) -> mach_vm_address_t {
-         return addressInExecutableFile + aslrOffset
-      }
-
-      private let targetInstructionsInLittleEndian: [Data]
-      private let replacementInstructionsInLittleEndian: [Data]
-
-      var targetInstructionsByteCount: mach_vm_size_t {
-         return Patch.byteCount(for: targetInstructionsInLittleEndian)
-      }
-      var replacementInstructionsByteCount: mach_vm_size_t {
-         return Patch.byteCount(for: replacementInstructionsInLittleEndian)
-      }
-      private static func byteCount(for instructions: [Data]) -> mach_vm_size_t {
-         return mach_vm_size_t(instructions.reduce(0) { $0 + $1.count })
-      }
-
-      func targetInstructions(in targetByteOrder: NXByteOrder) -> Data {
-         return Patch.combining(targetInstructionsInLittleEndian,
-                                targetByteOrder: targetByteOrder)
-      }
-      func replacementInstructions(in targetByteOrder: NXByteOrder) -> Data {
-         return Patch.combining(replacementInstructionsInLittleEndian,
-                                targetByteOrder: targetByteOrder)
-      }
-      private static func combining(_ instructionsInLittleEndian: [Data],
-                                    targetByteOrder: NXByteOrder) -> Data {
-         let needsByteSwap = targetByteOrder != NX_LittleEndian
-
-         var combinedInstructions = Data()
-         for instruction in instructionsInLittleEndian {
-            if needsByteSwap {
-               combinedInstructions.append(contentsOf: instruction.lazy.reversed())
-            } else {
-               combinedInstructions.append(contentsOf: instruction)
-            }
-         }
-
-         return combinedInstructions
-      }
-   }
-
-   private static func needsPatch(_ patch: Patch,
-                                  forExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws -> Bool {
-      let addressInTaskSpace = patch.addressInTaskSpace(aslrOffset: executableHeaderContext.aslrOffset)
-      os_log(.info,
-             "Reading task memory at address 0x%llx.",
-             addressInTaskSpace)
-
-      var bufferAddress: vm_offset_t = 0
-      let requestedBufferByteCount = patch.targetInstructionsByteCount
-      var bufferByteCount: mach_msg_type_number_t = 0
-      let status = mach_vm_read(executableHeaderContext.taskVMMap,
-                                addressInTaskSpace,
-                                requestedBufferByteCount,
-                                &bufferAddress,
-                                &bufferByteCount)
-      if status != KERN_SUCCESS {
-         os_log(.error,
-                "mach_vm_read failed: %d.",
-                status)
-         throw InjectError.failedToReadTargetProcessMemory
-      } else if bufferByteCount != requestedBufferByteCount {
-         os_log(.error,
-                "mach_vm_read returned data size (%{iec-bytes}u) that is different from the requested data size (%{iec-bytes}llu).",
-                bufferByteCount,
-                requestedBufferByteCount);
-         throw InjectError.failedToReadTargetProcessMemory
-      }
-
-      guard let bufferPointer = UnsafeMutableRawPointer(bitPattern: bufferAddress) else {
-         os_log(.fault,
-                "mach_vm_read returned NULL pointer.")
-         throw InjectError.failedToReadTargetProcessMemory
-      }
-      let buffer = Data(bytesNoCopy: bufferPointer,
-                        count: Int(bufferByteCount),
-                        deallocator: .virtualMemory)
-      os_log(.info,
-             "Task memory: %{public}@.",
-             (buffer as NSData).description)
-
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-
-      let replacementInstructions = patch.replacementInstructions(in: executableFileByteOrder)
-      if buffer == replacementInstructions {
-         return false
-      }
-
-      let targetInstructions = patch.targetInstructions(in: executableFileByteOrder)
-      guard buffer == targetInstructions else {
-         os_log(.error,
-                "Failed to find target instructions: %{public}@.",
-                (targetInstructions as NSData).description)
-         throw InjectError.failedToFindTargetInstructions
-      }
-      return true
-   }
-
-   private static func apply(_ patch: Patch,
-                             toExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws {
-      guard try needsPatch(patch, forExecutableDescribedBy: executableHeaderContext) else {
-         os_log("Target instructions have already been patched; skipping.")
-         return
-      }
-
-      let addressInTaskSpace = patch.addressInTaskSpace(aslrOffset: executableHeaderContext.aslrOffset)
-      os_log(.info,
-             "Patching task memory at address 0x%llx.",
-             addressInTaskSpace)
-
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-      let replacementInstructions = patch.replacementInstructions(in: executableFileByteOrder)
-
-      let status = mach_vm_protect(executableHeaderContext.taskVMMap,
-                                   addressInTaskSpace,
-                                   mach_vm_size_t(replacementInstructions.count),
-                                   0,  // set_maximum: boolean_t
-                                   VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE)
-      if status != KERN_SUCCESS {
-         os_log(.error,
-                "mach_vm_protect failed: %d.",
-                status)
-         throw InjectError.failedToModifyTargetInstructionsMemoryProtection
-      }
-
-      try replacementInstructions.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
-         let status = mach_vm_write(executableHeaderContext.taskVMMap,
-                                    addressInTaskSpace,
-                                    vm_offset_t(bitPattern: pointer),
-                                    mach_msg_type_number_t(replacementInstructions.count))
-         if status != KERN_SUCCESS {
-            os_log(.error,
-                   "mach_vm_write failed: %d.",
-                   status)
-            throw InjectError.failedToReplaceTargetInstructions
-         }
-      }
-   }
-
-   private static func unapply(_ patch: Patch,
-                               toExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws {
-      guard try !needsPatch(patch, forExecutableDescribedBy: executableHeaderContext) else {
-         os_log("Target instructions have not been patched; skipping.")
-         return
-      }
-
-      let addressInTaskSpace = patch.addressInTaskSpace(aslrOffset: executableHeaderContext.aslrOffset)
-      os_log(.info,
-             "Unapplying patch to task memory at address 0x%llx.",
-             addressInTaskSpace)
-
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-      let targetInstructions = patch.targetInstructions(in: executableFileByteOrder)
-
-      try targetInstructions.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
-         let status = mach_vm_write(executableHeaderContext.taskVMMap,
-                                    addressInTaskSpace,
-                                    vm_offset_t(bitPattern: pointer),
-                                    mach_msg_type_number_t(targetInstructions.count))
-         if status != KERN_SUCCESS {
-            os_log(.error,
-                   "mach_vm_write failed: %d.",
-                   status)
-            throw InjectError.failedToRestoreTargetInstructions
-         }
-      }
-
-      let status = mach_vm_protect(executableHeaderContext.taskVMMap,
-                                   addressInTaskSpace,
-                                   mach_vm_size_t(targetInstructions.count),
-                                   0,  // set_maximum: boolean_t
-                                   VM_PROT_READ | VM_PROT_EXECUTE)
-      if status != KERN_SUCCESS {
-         os_log(.error,
-                "mach_vm_protect failed: %d.",
-                status)
-         throw InjectError.failedToRestoreTargetInstructionsMemoryProtection
-      }
    }
 }

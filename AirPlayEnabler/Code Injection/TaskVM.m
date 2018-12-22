@@ -165,7 +165,7 @@ static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
 
             struct ape_executable_header_context executable_header_context = {
                .task_vm_map = task_vm_map,
-               .address_in_task_space = address_in_task_space,
+               .header_address_in_task_space = address_in_task_space,
                .header = header,
                .needs_byte_swap = needs_byte_swap
             };
@@ -204,7 +204,7 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
       EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
    }
 
-   mach_vm_address_t address_of_load_commands_in_task_space = executable_header_context_inout->address_in_task_space + sizeof(typeof(executable_header_context_inout->header));
+   mach_vm_address_t address_of_load_commands_in_task_space = executable_header_context_inout->header_address_in_task_space + sizeof(typeof(executable_header_context_inout->header));
    uint32_t requested_load_commands_byte_count = executable_header_context_inout->header.sizeofcmds;
 
    vm_offset_t load_commands_pointer = 0;
@@ -259,7 +259,7 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
                    "Found first segment command that maps file data at load commands offset 0x%lx. This segment is supposed to be where the Mach-O header is located.",
                    current_load_commands_offset);
 
-            mach_vm_offset_t aslr_offset = executable_header_context_inout->address_in_task_space - segment_command->vmaddr;
+            mach_vm_offset_t aslr_offset = executable_header_context_inout->header_address_in_task_space - segment_command->vmaddr;
             os_log(OS_LOG_DEFAULT,
                    "Determined that the ASLR offset for the executable Mach-O file is 0x%llx.",
                    aslr_offset);

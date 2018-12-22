@@ -125,9 +125,6 @@ extension XPCServiceImplementation {
       do {
          try CodeInjector.shared.removeCodeInjection()
       } catch {
-         os_log(.error,
-                "Failed to remove code injection: %{public}@.",
-                String(describing: error))
          throw UninstallPrivilegedHelperError.failedToRemoveCodeInjection
       }
 

@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 struct ape_executable_header_context {
    vm_map_t task_vm_map NS_SWIFT_NAME(taskVMMap);
 
-   mach_vm_address_t address_in_task_space NS_SWIFT_NAME(addressInTaskSpace);
+   mach_vm_address_t header_address_in_task_space NS_SWIFT_NAME(headerAddressInTaskSpace);
    mach_vm_offset_t aslr_offset NS_SWIFT_NAME(aslrOffset);
 
    struct mach_header_64 header;
