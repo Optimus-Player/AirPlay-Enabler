@@ -14,13 +14,15 @@ struct Patch {
    init(addressInExecutableFile: mach_vm_address_t,
         requirements: [Requirement],
         targetMemoryData: MemoryData,
-        replacementMemoryData: MemoryData) {
+        replacementMemoryData: MemoryData,
+        originalMemoryProtection: vm_prot_t) {
       precondition(targetMemoryData.count == replacementMemoryData.count)
 
       self.addressInExecutableFile = addressInExecutableFile
       self.requirements = requirements
       self.targetMemoryData = targetMemoryData
       self.replacementMemoryData = replacementMemoryData
+      self.originalMemoryProtection = originalMemoryProtection
    }
 
    // MARK: - Properties
@@ -29,6 +31,7 @@ struct Patch {
    private let requirements: [Requirement]
    private let targetMemoryData: MemoryData
    private let replacementMemoryData: MemoryData
+   private let originalMemoryProtection: vm_prot_t
 
    // MARK: - Applying/Unapplying the Patch
 
@@ -149,7 +152,7 @@ struct Patch {
                                    addressInTaskSpace,
                                    mach_vm_size_t(targetDataByteCount),
                                    0,  // set_maximum: boolean_t
-                                   VM_PROT_READ | VM_PROT_EXECUTE)
+                                   originalMemoryProtection)
       if status != KERN_SUCCESS {
          os_log(.error,
                 "mach_vm_protect failed: %d.",
