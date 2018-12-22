@@ -65,8 +65,7 @@ extension Patch {
                 "Task memory: %{public}@.",
                 (buffer as NSData).description)
 
-         let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-         guard let requiredData = requiredMemoryData.data(in: executableFileByteOrder) else {
+         guard let requiredData = requiredMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
             throw PatchError.unsupportedTargetProcessByteOrder
          }
 

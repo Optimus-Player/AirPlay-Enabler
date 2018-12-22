@@ -83,8 +83,7 @@ struct Patch {
              "Patching task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-      guard let replacementData = replacementMemoryData.data(in: executableFileByteOrder) else {
+      guard let replacementData = replacementMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
          throw PatchError.unsupportedTargetProcessByteOrder
       }
       let replacementDataByteCount = replacementData.count
@@ -129,8 +128,7 @@ struct Patch {
              "Unapplying patch to task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
-      guard let targetData = targetMemoryData.data(in: executableFileByteOrder) else {
+      guard let targetData = targetMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
          throw PatchError.unsupportedTargetProcessByteOrder
       }
       let targetDataByteCount = targetData.count
