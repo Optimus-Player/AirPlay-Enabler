@@ -69,13 +69,13 @@ struct MemoryData: CustomStringConvertible {
 
    // MARK: - Retrieving Data
 
-   func data(forExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) -> Data? {
-      let executableFileByteOrder = executableHeaderContext.executableFileByteOrder
+   func data(forExecutableDescribedBy executableInfo: ExecutableInfo) -> Data? {
+      let executableFileByteOrder = executableInfo.executableFileByteOrder
       guard var data = self.data(in: executableFileByteOrder) else {
          return nil
       }
 
-      let aslrOffset = executableHeaderContext.aslrOffset
+      let aslrOffset = executableInfo.aslrOffset
 
       for range in absoluteAddressRanges {
          var addressData = data[range]

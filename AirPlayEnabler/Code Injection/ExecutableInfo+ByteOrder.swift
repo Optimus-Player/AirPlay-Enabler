@@ -1,5 +1,5 @@
 //
-//  ExecutableHeaderContext+ByteOrder.swift
+//  ExecutableInfo+ByteOrder.swift
 //  AirPlayEnabler
 //
 //  Created by Darren Mo on 2018-12-14.
@@ -8,7 +8,7 @@
 
 import Darwin
 
-extension ExecutableHeaderContext {
+extension ExecutableInfo {
    var executableFileByteOrder: NXByteOrder {
       let hostByteOrder = NXHostByteOrder()
 

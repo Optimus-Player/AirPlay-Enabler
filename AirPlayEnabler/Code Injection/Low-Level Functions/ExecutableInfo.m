@@ -1,5 +1,5 @@
 //
-//  TaskVM.m
+//  ExecutableInfo.m
 //  AirPlayEnabler
 //
 //  Created by Darren Mo on 2018-12-12.
@@ -8,103 +8,97 @@
 //  Inspired by fG!: https://sourceforge.net/p/machoview/code/ci/master/tree/Attach.mm
 //
 
-#import "TaskVM.h"
+#import "ExecutableInfo.h"
 
 @import os.log;
 
-// MARK: - Macros
+#import "Common.h"
+#import "ImageInfo.h"
 
-#define ENTER_FUNCTION() {                                      \
-   os_log_debug(OS_LOG_DEFAULT, "Entering %s.", __FUNCTION__);  \
-}
-
-#define EXIT_FUNCTION(return_value) {                \
-   os_log_debug(OS_LOG_DEFAULT,                      \
-                "Exiting %s with return value %d.",  \
-                __FUNCTION__,                        \
-                (return_value));                     \
-   return (return_value);                            \
-}
+NS_ASSUME_NONNULL_BEGIN
 
 // MARK: - Static Function Declarations
 
 static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
                                                        mach_vm_address_t address_in_task_space,
                                                        bool *is_supported_executable_out,
-                                                       struct ape_executable_header_context *executable_header_context_out);
+                                                       struct ape_executable_info *executable_info_out);
 static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
-                                           struct ape_executable_header_context *executable_header_context_inout);
+                                           struct ape_executable_info *executable_info_inout);
 
 // MARK: - Function Definitions
 
-kern_return_t ape_read_executable_header(vm_map_t task_vm_map,
-                                         struct ape_executable_header_context *executable_header_context_out) {
+kern_return_t ape_populate_executable_info(vm_map_t task_vm_map,
+                                           const char *executable_file_path,
+                                           struct ape_executable_info *executable_info_out) {
    ENTER_FUNCTION();
 
-   if (executable_header_context_out == NULL) {
-      os_log_error(OS_LOG_DEFAULT, "executable_header_context_out should not be NULL.");
+   if (executable_file_path == NULL) {
+      os_log_error(OS_LOG_DEFAULT, "executable_file_path should not be NULL.");
+      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
+   }
+   if (executable_info_out == NULL) {
+      os_log_error(OS_LOG_DEFAULT, "executable_info_out should not be NULL.");
       EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
    }
 
-   mach_vm_address_t current_address_in_task_space = 0;
-   for (unsigned long iteration_counter = 0;; iteration_counter++) {
-      os_log_info(OS_LOG_DEFAULT,
-                  "Starting region iteration %lu. current_address_in_task_space = 0x%llx.",
-                  iteration_counter,
-                  current_address_in_task_space);
-
-      mach_vm_size_t region_size = 0;
-      natural_t nesting_depth = UINT_MAX;
-      struct vm_region_submap_info_64 submap_info = {0};
-      mach_msg_type_number_t info_count = VM_REGION_SUBMAP_INFO_COUNT_64;
-
-      kern_return_t status = mach_vm_region_recurse(task_vm_map,
-                                                    &current_address_in_task_space,
-                                                    &region_size,
-                                                    &nesting_depth,
-                                                    (vm_region_recurse_info_t)&submap_info,
-                                                    &info_count);
-      if (status != KERN_SUCCESS) {
-         os_log_error(OS_LOG_DEFAULT,
-                      "mach_vm_region_recurse failed: %d.",
-                      status);
-         EXIT_FUNCTION(KERN_FAILURE);
-      } else if (submap_info.is_submap) {
-         os_log_fault(OS_LOG_DEFAULT,
-                      "mach_vm_region_recurse returned submap even though we specified a nesting depth of %u.",
-                      nesting_depth);
-         EXIT_FUNCTION(KERN_FAILURE);
-      }
-
-      if ((submap_info.protection & VM_PROT_EXECUTE) != 0) {
-         mach_vm_size_t header_size = sizeof(typeof(executable_header_context_out->header));
-         if (region_size >= header_size) {
-            bool is_supported_executable = false;
-            status = read_executable_header_at_address(task_vm_map,
-                                                       current_address_in_task_space,
-                                                       &is_supported_executable,
-                                                       executable_header_context_out);
-            if (status != KERN_SUCCESS) {
-               os_log_error(OS_LOG_DEFAULT,
-                            "read_executable_header_at_address failed: %d.",
-                            status);
-               EXIT_FUNCTION(KERN_FAILURE);
-            }
-
-            if (is_supported_executable) {
-               break;
-            }
-         } else {
-            os_log_info(OS_LOG_DEFAULT,
-                        "Region is not large enough to contain a Mach-O header; skipping.");
-         }
-      } else {
-         os_log_info(OS_LOG_DEFAULT,
-                     "Region does not have execute permission; skipping.");
-      }
-
-      current_address_in_task_space += region_size;
+   struct task_dyld_info dyld_info = {0};
+   mach_msg_type_number_t task_info_count = TASK_DYLD_INFO_COUNT;
+   kern_return_t status = task_info(task_vm_map,
+                                    TASK_DYLD_INFO,
+                                    (task_info_t)&dyld_info,
+                                    &task_info_count);
+   if (status != KERN_SUCCESS) {
+      os_log_error(OS_LOG_DEFAULT,
+                   "task_info failed: %d.",
+                   status);
+      EXIT_FUNCTION(KERN_FAILURE);
+   } else if (task_info_count != TASK_DYLD_INFO_COUNT) {
+      os_log_fault(OS_LOG_DEFAULT,
+                   "task_info returned info count that does not correspond to task_dyld_info struct: %u.",
+                   task_info_count);
+      EXIT_FUNCTION(KERN_FAILURE);
    }
+
+   integer_t dyld_all_image_infos_format = dyld_info.all_image_info_format;
+   if (dyld_all_image_infos_format != TASK_DYLD_ALL_IMAGE_INFO_64) {
+      os_log_error(OS_LOG_DEFAULT,
+                   "Unsupported dyld_all_image_infos format: %d.",
+                   dyld_all_image_infos_format);
+      EXIT_FUNCTION(KERN_FAILURE);
+   }
+
+   mach_vm_address_t dyld_all_image_infos_address_in_task_space = dyld_info.all_image_info_addr;
+
+   struct ape_image_info image_info = {0};
+   status = ape_find_image_info(task_vm_map,
+                                dyld_all_image_infos_address_in_task_space,
+                                executable_file_path,
+                                &image_info);
+   if (status != KERN_SUCCESS) {
+      os_log_error(OS_LOG_DEFAULT,
+                   "ape_find_image_info failed: %d.",
+                   status);
+      EXIT_FUNCTION(KERN_FAILURE);
+   }
+
+   bool is_supported_executable = false;
+   status = read_executable_header_at_address(task_vm_map,
+                                              image_info.header_address_in_task_space,
+                                              &is_supported_executable,
+                                              executable_info_out);
+   if (status != KERN_SUCCESS) {
+      os_log_error(OS_LOG_DEFAULT,
+                   "read_executable_header_at_address failed: %d.",
+                   status);
+      EXIT_FUNCTION(KERN_FAILURE);
+   } else if (!is_supported_executable) {
+      os_log_error(OS_LOG_DEFAULT,
+                   "Unsupported executable format/architecture.");
+      EXIT_FUNCTION(KERN_FAILURE);
+   }
+
+   executable_info_out->dyld_all_image_infos_address_in_task_space = dyld_all_image_infos_address_in_task_space;
 
    EXIT_FUNCTION(KERN_SUCCESS);
 }
@@ -112,19 +106,10 @@ kern_return_t ape_read_executable_header(vm_map_t task_vm_map,
 static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
                                                        mach_vm_address_t address_in_task_space,
                                                        bool *is_supported_executable_out,
-                                                       struct ape_executable_header_context *executable_header_context_out) {
+                                                       struct ape_executable_info *executable_info_out) {
    ENTER_FUNCTION();
 
-   if (is_supported_executable_out == NULL) {
-      os_log_error(OS_LOG_DEFAULT, "is_supported_executable_out should not be NULL.");
-      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
-   }
-   if (executable_header_context_out == NULL) {
-      os_log_error(OS_LOG_DEFAULT, "executable_header_context_out should not be NULL.");
-      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
-   }
-
-   typeof(executable_header_context_out->header) header = {0};
+   typeof(executable_info_out->header) header = {0};
    mach_vm_size_t requested_header_size = sizeof(typeof(header));
    mach_vm_size_t header_size = 0;
 
@@ -140,7 +125,7 @@ static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
       EXIT_FUNCTION(KERN_FAILURE);
    } else if (header_size != requested_header_size) {
       os_log_error(OS_LOG_DEFAULT,
-                   "mach_vm_read_overwrite returned header size (%{iec-bytes}llu) that is different from the requested header size (%{iec-bytes}llu).",
+                   "mach_vm_read_overwrite returned size (%{iec-bytes}llu) that is different from the requested size (%{iec-bytes}llu).",
                    header_size,
                    requested_header_size);
       EXIT_FUNCTION(KERN_FAILURE);
@@ -160,17 +145,17 @@ static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
       if (header.cputype == CPU_TYPE_X86_64) {
          if (header.filetype == MH_EXECUTE) {
             os_log(OS_LOG_DEFAULT,
-                   "Found region with x86-64 executable Mach-O file whose header starts at 0x%llx (in task space).",
+                   "Found x86-64 executable Mach-O file whose header starts at 0x%llx (in task space).",
                    address_in_task_space);
 
-            struct ape_executable_header_context executable_header_context = {
+            struct ape_executable_info executable_info = {
                .task_vm_map = task_vm_map,
                .header_address_in_task_space = address_in_task_space,
                .header = header,
                .needs_byte_swap = needs_byte_swap
             };
 
-            status = determine_aslr_offset(task_vm_map, &executable_header_context);
+            status = determine_aslr_offset(task_vm_map, &executable_info);
             if (status != KERN_SUCCESS) {
                os_log_error(OS_LOG_DEFAULT,
                             "determine_aslr_offset failed: %d.",
@@ -179,7 +164,7 @@ static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
             }
 
             *is_supported_executable_out = true;
-            *executable_header_context_out = executable_header_context;
+            *executable_info_out = executable_info;
          } else {
             os_log_info(OS_LOG_DEFAULT, "Region does not contain executable Mach-O file; skipping.");
          }
@@ -196,16 +181,11 @@ static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
 }
 
 static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
-                                           struct ape_executable_header_context *executable_header_context_inout) {
+                                           struct ape_executable_info *executable_info_inout) {
    ENTER_FUNCTION();
 
-   if (executable_header_context_inout == NULL) {
-      os_log_error(OS_LOG_DEFAULT, "executable_header_context_inout should not be NULL.");
-      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
-   }
-
-   mach_vm_address_t address_of_load_commands_in_task_space = executable_header_context_inout->header_address_in_task_space + sizeof(typeof(executable_header_context_inout->header));
-   uint32_t requested_load_commands_byte_count = executable_header_context_inout->header.sizeofcmds;
+   mach_vm_address_t address_of_load_commands_in_task_space = executable_info_inout->header_address_in_task_space + sizeof(typeof(executable_info_inout->header));
+   uint32_t requested_load_commands_byte_count = executable_info_inout->header.sizeofcmds;
 
    vm_offset_t load_commands_pointer = 0;
    mach_msg_type_number_t load_commands_byte_count = 0;
@@ -227,7 +207,7 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
       EXIT_FUNCTION(KERN_FAILURE);
    }
 
-   bool needs_byte_swap = executable_header_context_inout->needs_byte_swap;
+   bool needs_byte_swap = executable_info_inout->needs_byte_swap;
 
    bool foundNonZeroSegment = false;
    vm_offset_t current_load_commands_offset = 0;
@@ -259,12 +239,12 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
                    "Found first segment command that maps file data at load commands offset 0x%lx. This segment is supposed to be where the Mach-O header is located.",
                    current_load_commands_offset);
 
-            mach_vm_offset_t aslr_offset = executable_header_context_inout->header_address_in_task_space - segment_command->vmaddr;
+            mach_vm_offset_t aslr_offset = executable_info_inout->header_address_in_task_space - segment_command->vmaddr;
             os_log(OS_LOG_DEFAULT,
                    "Determined that the ASLR offset for the executable Mach-O file is 0x%llx.",
                    aslr_offset);
 
-            executable_header_context_inout->aslr_offset = aslr_offset;
+            executable_info_inout->aslr_offset = aslr_offset;
             foundNonZeroSegment = true;
             break;
          } else {
@@ -297,3 +277,5 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
 
    EXIT_FUNCTION(KERN_SUCCESS);
 }
+
+NS_ASSUME_NONNULL_END

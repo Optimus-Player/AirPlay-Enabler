@@ -46,30 +46,30 @@ struct Patch {
       case failedToRestoreTargetDataMemoryProtection
    }
 
-   func needsPatch(forExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws -> Bool {
+   func needsPatch(forExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Bool {
       let replacementDataRequirement = Requirement(addressInExecutableFile: addressInExecutableFile,
                                                    requiredMemoryData: replacementMemoryData)
-      if try replacementDataRequirement.isSatisfied(byExecutableDescribedBy: executableHeaderContext) {
+      if try replacementDataRequirement.isSatisfied(byExecutableDescribedBy: executableInfo) {
          return false
       }
 
       let targetDataRequirement = Requirement(addressInExecutableFile: addressInExecutableFile,
                                               requiredMemoryData: targetMemoryData)
-      guard try targetDataRequirement.isSatisfied(byExecutableDescribedBy: executableHeaderContext) else {
+      guard try targetDataRequirement.isSatisfied(byExecutableDescribedBy: executableInfo) else {
          throw PatchError.failedToFindTargetData
       }
 
       return true
    }
 
-   func apply(toExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws {
-      guard try needsPatch(forExecutableDescribedBy: executableHeaderContext) else {
+   func apply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      guard try needsPatch(forExecutableDescribedBy: executableInfo) else {
          os_log("Target data has already been patched; skipping.")
          return
       }
 
       for requirement in requirements {
-         let isRequirementSatisfied = try requirement.isSatisfied(byExecutableDescribedBy: executableHeaderContext)
+         let isRequirementSatisfied = try requirement.isSatisfied(byExecutableDescribedBy: executableInfo)
          if !isRequirementSatisfied {
             os_log(.error,
                    "Requirement not satisfied: %{public}@.",
@@ -78,17 +78,17 @@ struct Patch {
          }
       }
 
-      let addressInTaskSpace = executableHeaderContext.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
+      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       os_log(.info,
              "Patching task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      guard let replacementData = replacementMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
+      guard let replacementData = replacementMemoryData.data(forExecutableDescribedBy: executableInfo) else {
          throw PatchError.unsupportedTargetProcessByteOrder
       }
       let replacementDataByteCount = replacementData.count
 
-      let status = mach_vm_protect(executableHeaderContext.taskVMMap,
+      let status = mach_vm_protect(executableInfo.taskVMMap,
                                    addressInTaskSpace,
                                    mach_vm_size_t(replacementDataByteCount),
                                    0,  // set_maximum: boolean_t
@@ -101,7 +101,7 @@ struct Patch {
       }
 
       try replacementData.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
-         let status = mach_vm_write(executableHeaderContext.taskVMMap,
+         let status = mach_vm_write(executableInfo.taskVMMap,
                                     addressInTaskSpace,
                                     vm_offset_t(bitPattern: pointer),
                                     mach_msg_type_number_t(replacementDataByteCount))
@@ -117,24 +117,24 @@ struct Patch {
              addressInTaskSpace)
    }
 
-   func unapply(toExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws {
-      guard try !needsPatch(forExecutableDescribedBy: executableHeaderContext) else {
+   func unapply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      guard try !needsPatch(forExecutableDescribedBy: executableInfo) else {
          os_log("Target data has not been patched; skipping.")
          return
       }
 
-      let addressInTaskSpace = executableHeaderContext.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
+      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       os_log(.info,
              "Unapplying patch to task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      guard let targetData = targetMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
+      guard let targetData = targetMemoryData.data(forExecutableDescribedBy: executableInfo) else {
          throw PatchError.unsupportedTargetProcessByteOrder
       }
       let targetDataByteCount = targetData.count
 
       try targetData.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
-         let status = mach_vm_write(executableHeaderContext.taskVMMap,
+         let status = mach_vm_write(executableInfo.taskVMMap,
                                     addressInTaskSpace,
                                     vm_offset_t(bitPattern: pointer),
                                     mach_msg_type_number_t(targetDataByteCount))
@@ -146,7 +146,7 @@ struct Patch {
          }
       }
 
-      let status = mach_vm_protect(executableHeaderContext.taskVMMap,
+      let status = mach_vm_protect(executableInfo.taskVMMap,
                                    addressInTaskSpace,
                                    mach_vm_size_t(targetDataByteCount),
                                    0,  // set_maximum: boolean_t

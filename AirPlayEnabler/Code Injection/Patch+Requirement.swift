@@ -26,8 +26,8 @@ extension Patch {
 
       // MARK: - Checking Satisfaction
 
-      func isSatisfied(byExecutableDescribedBy executableHeaderContext: ExecutableHeaderContext) throws -> Bool {
-         let addressInTaskSpace = executableHeaderContext.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
+      func isSatisfied(byExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Bool {
+         let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
          os_log(.info,
                 "Reading task memory at address 0x%llx.",
                 addressInTaskSpace)
@@ -35,7 +35,7 @@ extension Patch {
          var bufferAddress: vm_offset_t = 0
          let requestedBufferByteCount = mach_vm_size_t(requiredMemoryData.count)
          var bufferByteCount: mach_msg_type_number_t = 0
-         let status = mach_vm_read(executableHeaderContext.taskVMMap,
+         let status = mach_vm_read(executableInfo.taskVMMap,
                                    addressInTaskSpace,
                                    requestedBufferByteCount,
                                    &bufferAddress,
@@ -47,7 +47,7 @@ extension Patch {
             throw PatchError.failedToReadTargetProcessMemory
          } else if bufferByteCount != requestedBufferByteCount {
             os_log(.error,
-                   "mach_vm_read returned data size (%{iec-bytes}u) that is different from the requested data size (%{iec-bytes}llu).",
+                   "mach_vm_read returned size (%{iec-bytes}u) that is different from the requested size (%{iec-bytes}llu).",
                    bufferByteCount,
                    requestedBufferByteCount);
             throw PatchError.failedToReadTargetProcessMemory
@@ -65,7 +65,7 @@ extension Patch {
                 "Task memory: %{public}@.",
                 (buffer as NSData).description)
 
-         guard let requiredData = requiredMemoryData.data(forExecutableDescribedBy: executableHeaderContext) else {
+         guard let requiredData = requiredMemoryData.data(forExecutableDescribedBy: executableInfo) else {
             throw PatchError.unsupportedTargetProcessByteOrder
          }
 

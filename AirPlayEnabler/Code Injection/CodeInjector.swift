@@ -28,22 +28,22 @@ class CodeInjector {
       case failedToFindTargetProcess
       case tooManyTargetProcesses
       case failedToAttachToTargetProcess
-      case failedToReadExecutableHeader
+      case failedToReadExecutableInfo
       case failedToApplyPatch(patchError: Patch.PatchError)
       case failedToUnapplyPatch(patchError: Patch.PatchError)
    }
    private(set) var latestError: InjectError?
 
-   // MARK: - Initializing the Executable Header Context
+   // MARK: - Initializing the Executable Info
 
-   private var _executableHeaderContext: ExecutableHeaderContext?
-   private func executableHeaderContext() throws -> ExecutableHeaderContext {
-      if let executableHeaderContext = _executableHeaderContext {
-         os_log(.info, "Executable header context has been previously found; reusing.")
-         return executableHeaderContext
+   private var _executableInfo: ExecutableInfo?
+   private func executableInfo() throws -> ExecutableInfo {
+      if let executableInfo = _executableInfo {
+         os_log(.info, "Executable info has been previously found; reusing.")
+         return executableInfo
       }
 
-      os_log("Executable header context not found; will try to populate it.")
+      os_log("Executable info not found; will try to populate it.")
 
       let amfidPIDs = try CodeInjector.findPIDs(forProcessesNamed: "amfid")
       guard !amfidPIDs.isEmpty else {
@@ -57,18 +57,18 @@ class CodeInjector {
       let amfidPID = amfidPIDs.first!
       os_log("Found amfid PID: %d.", amfidPID);
 
-      let executableHeaderContext: ExecutableHeaderContext
+      let executableInfo: ExecutableInfo
       do {
-         executableHeaderContext = try CodeInjector.readExecutableHeader(inProcessIdentifiedBy: amfidPID)
+         executableInfo = try CodeInjector.readExecutableInfo(inProcessIdentifiedBy: amfidPID)
       } catch let error as InjectError {
          latestError = error
          throw error
       }
 
-      _executableHeaderContext = executableHeaderContext
-      os_log("Successfully populated executable header context.")
+      _executableInfo = executableInfo
+      os_log("Successfully populated executable info.")
 
-      return executableHeaderContext
+      return executableInfo
    }
 
    // MARK: - Checking Activation Status
@@ -83,11 +83,11 @@ class CodeInjector {
 
    private func _isCodeInjectionActive() -> Bool {
       do {
-         let executableHeaderContext = try self.executableHeaderContext()
+         let executableInfo = try self.executableInfo()
 
          let patches = Patch.makePatchesForCurrentOperatingSystem()
          for patch in patches {
-            let needsPatch = try patch.needsPatch(forExecutableDescribedBy: executableHeaderContext)
+            let needsPatch = try patch.needsPatch(forExecutableDescribedBy: executableInfo)
             if needsPatch {
                return false
             }
@@ -115,11 +115,11 @@ class CodeInjector {
 
       do {
          do {
-            let executableHeaderContext = try self.executableHeaderContext()
+            let executableInfo = try self.executableInfo()
 
             let patches = Patch.makePatchesForCurrentOperatingSystem()
             for patch in patches {
-               try patch.apply(toExecutableDescribedBy: executableHeaderContext)
+               try patch.apply(toExecutableDescribedBy: executableInfo)
             }
          } catch {
             os_log(.error, "Failed to inject code: %{public}@.", String(describing: error))
@@ -144,11 +144,11 @@ class CodeInjector {
 
       do {
          do {
-            let executableHeaderContext = try self.executableHeaderContext()
+            let executableInfo = try self.executableInfo()
 
             let patches = Patch.makePatchesForCurrentOperatingSystem()
             for patch in patches.lazy.reversed() {
-               try patch.unapply(toExecutableDescribedBy: executableHeaderContext)
+               try patch.unapply(toExecutableDescribedBy: executableInfo)
             }
          } catch {
             os_log(.error, "Failed to remove code injection: %{public}@.", String(describing: error))
@@ -210,7 +210,7 @@ extension CodeInjector {
       return pids
    }
 
-   private static func readExecutableHeader(inProcessIdentifiedBy targetPID: pid_t) throws -> ExecutableHeaderContext {
+   private static func readExecutableInfo(inProcessIdentifiedBy targetPID: pid_t) throws -> ExecutableInfo {
       var targetTask: mach_port_name_t = 0
       var status = task_for_pid(mach_task_self_, targetPID, &targetTask)
       if status != KERN_SUCCESS {
@@ -220,16 +220,17 @@ extension CodeInjector {
          throw InjectError.failedToAttachToTargetProcess
       }
 
-      var executableHeaderContext = ExecutableHeaderContext()
-      status = ExecutableHeaderContext.readExecutableHeader(inTaskVMDescribedBy: targetTask,
-                                                            executableHeaderContextOut: &executableHeaderContext)
+      var executableInfo = ExecutableInfo()
+      status = ExecutableInfo.populateExecutableInfo(fromTaskVMDescribedBy: targetTask,
+                                                     forExecutableFilePath: "/usr/libexec/amfid",
+                                                     executableInfoOut: &executableInfo)
       if status != KERN_SUCCESS {
          os_log(.error,
-                "ExecutableHeaderContext.readExecutableHeader failed: %d.",
+                "ExecutableInfo.populateExecutableInfo failed: %d.",
                 status)
-         throw InjectError.failedToReadExecutableHeader
+         throw InjectError.failedToReadExecutableInfo
       }
 
-      return executableHeaderContext
+      return executableInfo
    }
 }

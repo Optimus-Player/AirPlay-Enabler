@@ -11,10 +11,12 @@
 		E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */; };
 		E667BBFD21CD73DE00FB35E4 /* Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BBFC21CD73DE00FB35E4 /* Patch.swift */; };
 		E667BBFF21CD745F00FB35E4 /* MemoryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BBFE21CD745F00FB35E4 /* MemoryData.swift */; };
-		E667BC0321CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */; };
+		E667BC0321CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0221CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift */; };
 		E667BC0521CDC41A00FB35E4 /* Patch+DynamicCreation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */; };
 		E667BC0A21CDC51400FB35E4 /* Patch+MacOS10_14.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */; };
 		E667BC0C21CDCB4A00FB35E4 /* Patch+Requirement.swift in Sources */ = {isa = PBXBuildFile; fileRef = E667BC0B21CDCB4A00FB35E4 /* Patch+Requirement.swift */; };
+		E67FBFD721D0105A00FB35E4 /* ImageInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = E67FBFD521D0105A00FB35E4 /* ImageInfo.m */; };
+		E67FBFDA21D010F000FB35E4 /* Common.m in Sources */ = {isa = PBXBuildFile; fileRef = E67FBFD821D010F000FB35E4 /* Common.m */; };
 		E688AE5321C8AD5500FB35E4 /* XPCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5221C8AD5500FB35E4 /* XPCService.swift */; };
 		E688AE5721C9637B00FB35E4 /* XPCServiceImplementation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5621C9637B00FB35E4 /* XPCServiceImplementation.swift */; };
 		E688AE6521C9775D00FB35E4 /* AirPlayEnablerInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE5421C960FB00FB35E4 /* AirPlayEnablerInterface.swift */; };
@@ -23,8 +25,8 @@
 		E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE7721C9AE1100FB35E4 /* PrivilegedHelperInfo.swift */; };
 		E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */; };
 		E69A58C421CACFC600FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift in Sources */ = {isa = PBXBuildFile; fileRef = E69A58C321CACFC500FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift */; };
-		E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */; };
-		E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */; };
+		E6B1F2B221C1FD7E00FB35E4 /* ExecutableInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */; };
+		E6B1F2BC21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */; };
 		E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */; };
 		E6FAA06421CC269200FB35E4 /* PrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */; };
 		E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */; };
@@ -60,10 +62,14 @@
 		E65DDEAF21C1F2A500FB35E4 /* CodeInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeInjector.swift; sourceTree = "<group>"; };
 		E667BBFC21CD73DE00FB35E4 /* Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patch.swift; sourceTree = "<group>"; };
 		E667BBFE21CD745F00FB35E4 /* MemoryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryData.swift; sourceTree = "<group>"; };
-		E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableHeaderContext+AddressInTaskSpace.swift"; sourceTree = "<group>"; };
+		E667BC0221CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableInfo+AddressInTaskSpace.swift"; sourceTree = "<group>"; };
 		E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+DynamicCreation.swift"; sourceTree = "<group>"; };
 		E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+MacOS10_14.swift"; sourceTree = "<group>"; };
 		E667BC0B21CDCB4A00FB35E4 /* Patch+Requirement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+Requirement.swift"; sourceTree = "<group>"; };
+		E67FBFD521D0105A00FB35E4 /* ImageInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageInfo.m; sourceTree = "<group>"; };
+		E67FBFD621D0105A00FB35E4 /* ImageInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageInfo.h; sourceTree = "<group>"; };
+		E67FBFD821D010F000FB35E4 /* Common.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Common.m; sourceTree = "<group>"; };
+		E67FBFD921D010F000FB35E4 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
 		E688AE5221C8AD5500FB35E4 /* XPCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCService.swift; sourceTree = "<group>"; };
 		E688AE5421C960FB00FB35E4 /* AirPlayEnablerInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayEnablerInterface.swift; sourceTree = "<group>"; };
 		E688AE5621C9637B00FB35E4 /* XPCServiceImplementation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCServiceImplementation.swift; sourceTree = "<group>"; };
@@ -73,9 +79,9 @@
 		E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+UninstallPrivilegedHelper.swift"; sourceTree = "<group>"; };
 		E69A58C321CACFC500FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+IsPrivilegedHelperRunning.swift"; sourceTree = "<group>"; };
 		E6B1F2B021C1FD7E00FB35E4 /* AirPlayEnabler-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirPlayEnabler-Bridging-Header.h"; sourceTree = "<group>"; };
-		E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TaskVM.m; sourceTree = "<group>"; };
-		E6B1F2B321C1FD9A00FB35E4 /* TaskVM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TaskVM.h; sourceTree = "<group>"; };
-		E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableHeaderContext+ByteOrder.swift"; sourceTree = "<group>"; };
+		E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ExecutableInfo.m; sourceTree = "<group>"; };
+		E6B1F2B321C1FD9A00FB35E4 /* ExecutableInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExecutableInfo.h; sourceTree = "<group>"; };
+		E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableInfo+ByteOrder.swift"; sourceTree = "<group>"; };
 		E6B1F2BD21C5C33B00FB35E4 /* ActivityTracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityTracing.h; sourceTree = "<group>"; };
 		E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityTracing.m; sourceTree = "<group>"; };
 		E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivilegedHelperVersion.swift; sourceTree = "<group>"; };
@@ -170,10 +176,9 @@
 				E667BC0421CDC41A00FB35E4 /* Patch+DynamicCreation.swift */,
 				E667BC0621CDC41F00FB35E4 /* Patches */,
 				E667BBFE21CD745F00FB35E4 /* MemoryData.swift */,
-				E667BC0221CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift */,
-				E6B1F2BB21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift */,
-				E6B1F2B321C1FD9A00FB35E4 /* TaskVM.h */,
-				E6B1F2B121C1FD7E00FB35E4 /* TaskVM.m */,
+				E667BC0221CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift */,
+				E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */,
+				E6D4062721D015EB00FB35E4 /* Low-Level Functions */,
 			);
 			path = "Code Injection";
 			sourceTree = "<group>";
@@ -188,6 +193,19 @@
 				E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */,
 			);
 			path = "XPC Service";
+			sourceTree = "<group>";
+		};
+		E6D4062721D015EB00FB35E4 /* Low-Level Functions */ = {
+			isa = PBXGroup;
+			children = (
+				E6B1F2B321C1FD9A00FB35E4 /* ExecutableInfo.h */,
+				E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */,
+				E67FBFD621D0105A00FB35E4 /* ImageInfo.h */,
+				E67FBFD521D0105A00FB35E4 /* ImageInfo.m */,
+				E67FBFD921D010F000FB35E4 /* Common.h */,
+				E67FBFD821D010F000FB35E4 /* Common.m */,
+			);
+			path = "Low-Level Functions";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -280,19 +298,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E6B1F2B221C1FD7E00FB35E4 /* TaskVM.m in Sources */,
+				E6B1F2B221C1FD7E00FB35E4 /* ExecutableInfo.m in Sources */,
 				E667BC0A21CDC51400FB35E4 /* Patch+MacOS10_14.swift in Sources */,
+				E67FBFDA21D010F000FB35E4 /* Common.m in Sources */,
 				E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */,
 				E667BC0521CDC41A00FB35E4 /* Patch+DynamicCreation.swift in Sources */,
 				E69A58C421CACFC600FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift in Sources */,
 				E65DDE9021C0679D00FB35E4 /* main.swift in Sources */,
 				E688AE5721C9637B00FB35E4 /* XPCServiceImplementation.swift in Sources */,
+				E67FBFD721D0105A00FB35E4 /* ImageInfo.m in Sources */,
 				E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */,
 				E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */,
 				E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */,
-				E667BC0321CD7E2200FB35E4 /* ExecutableHeaderContext+AddressInTaskSpace.swift in Sources */,
+				E667BC0321CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift in Sources */,
 				E667BBFF21CD745F00FB35E4 /* MemoryData.swift in Sources */,
-				E6B1F2BC21C4A39900FB35E4 /* ExecutableHeaderContext+ByteOrder.swift in Sources */,
+				E6B1F2BC21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift in Sources */,
 				E667BC0C21CDCB4A00FB35E4 /* Patch+Requirement.swift in Sources */,
 				E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */,
 				E667BBFD21CD73DE00FB35E4 /* Patch.swift in Sources */,
