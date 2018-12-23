@@ -10,9 +10,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-kern_return_t ape_create_cstring(vm_map_t task_vm_map,
-                                 mach_vm_address_t address_in_task_space,
-                                 const char **cstring_out) {
+kern_return_t ape_cstring_create_from_task_vm(vm_map_t task_vm_map,
+                                              mach_vm_address_t address_in_task_space,
+                                              const char **cstring_out) {
    ENTER_FUNCTION();
 
    if (cstring_out == NULL) {
@@ -100,6 +100,13 @@ kern_return_t ape_create_cstring(vm_map_t task_vm_map,
 failure:
    free(cstring);
    EXIT_FUNCTION(KERN_FAILURE);
+}
+
+void ape_cstring_free(const char **cstring_inout) {
+   if (cstring_inout != NULL) {
+      free((void *)*cstring_inout);
+      *cstring_inout = NULL;
+   }
 }
 
 NS_ASSUME_NONNULL_END

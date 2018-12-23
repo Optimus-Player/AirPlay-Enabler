@@ -24,8 +24,8 @@ struct ape_executable_info {
    mach_vm_address_t dyld_all_image_infos_address_in_task_space NS_SWIFT_NAME(dyldAllImageInfosAddressInTaskSpace);
 } NS_SWIFT_NAME(ExecutableInfo);
 
-kern_return_t ape_populate_executable_info(vm_map_t task_vm_map,
+kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
                                            const char *executable_file_path,
-                                           struct ape_executable_info *executable_info_out) NS_SWIFT_NAME(ExecutableInfo.populateExecutableInfo(fromTaskVMDescribedBy:forExecutableFilePath:executableInfoOut:));
+                                           struct ape_executable_info *executable_info_out) NS_SWIFT_NAME(ExecutableInfo.populate(fromTaskVMDescribedBy:forExecutableFilePath:executableInfoOut:));
 
 NS_ASSUME_NONNULL_END

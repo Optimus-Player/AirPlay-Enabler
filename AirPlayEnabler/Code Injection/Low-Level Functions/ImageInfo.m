@@ -45,7 +45,7 @@ static void swap_dyld_image_info(struct ape_dyld_image_info *dyld_image_info_ino
 
 // MARK: - Function Definitions
 
-kern_return_t ape_find_image_info(vm_map_t task_vm_map,
+kern_return_t ape_image_info_find(vm_map_t task_vm_map,
                                   mach_vm_address_t dyld_all_image_infos_address_in_task_space,
                                   const char *image_file_path,
                                   struct ape_image_info *image_info_out) {
@@ -115,12 +115,12 @@ kern_return_t ape_find_image_info(vm_map_t task_vm_map,
       }
 
       const char *image_file_path_from_dyld = NULL;
-      status = ape_create_cstring(task_vm_map,
-                                  dyld_image_info.file_path_address_in_task_space,
-                                  &image_file_path_from_dyld);
+      status = ape_cstring_create_from_task_vm(task_vm_map,
+                                               dyld_image_info.file_path_address_in_task_space,
+                                               &image_file_path_from_dyld);
       if (status != KERN_SUCCESS) {
          os_log_error(OS_LOG_DEFAULT,
-                      "ape_create_cstring failed: %d.",
+                      "ape_cstring_create_from_task_vm failed: %d.",
                       status);
          EXIT_FUNCTION(KERN_FAILURE);
       }

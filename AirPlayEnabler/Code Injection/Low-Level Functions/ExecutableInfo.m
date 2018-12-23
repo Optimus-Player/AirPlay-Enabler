@@ -28,7 +28,7 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
 
 // MARK: - Function Definitions
 
-kern_return_t ape_populate_executable_info(vm_map_t task_vm_map,
+kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
                                            const char *executable_file_path,
                                            struct ape_executable_info *executable_info_out) {
    ENTER_FUNCTION();
@@ -71,13 +71,13 @@ kern_return_t ape_populate_executable_info(vm_map_t task_vm_map,
    mach_vm_address_t dyld_all_image_infos_address_in_task_space = dyld_info.all_image_info_addr;
 
    struct ape_image_info image_info = {0};
-   status = ape_find_image_info(task_vm_map,
+   status = ape_image_info_find(task_vm_map,
                                 dyld_all_image_infos_address_in_task_space,
                                 executable_file_path,
                                 &image_info);
    if (status != KERN_SUCCESS) {
       os_log_error(OS_LOG_DEFAULT,
-                   "ape_find_image_info failed: %d.",
+                   "ape_image_info_find failed: %d.",
                    status);
       EXIT_FUNCTION(KERN_FAILURE);
    }

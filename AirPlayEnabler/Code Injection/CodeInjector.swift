@@ -227,13 +227,13 @@ extension CodeInjector {
 
       var executableInfo = ExecutableInfo()
       status = try whileSuspendingTask(targetTask) {
-         return ExecutableInfo.populateExecutableInfo(fromTaskVMDescribedBy: targetTask,
-                                                      forExecutableFilePath: "/usr/libexec/amfid",
-                                                      executableInfoOut: &executableInfo)
+         return ExecutableInfo.populate(fromTaskVMDescribedBy: targetTask,
+                                        forExecutableFilePath: "/usr/libexec/amfid",
+                                        executableInfoOut: &executableInfo)
       }
       if status != KERN_SUCCESS {
          os_log(.error,
-                "ExecutableInfo.populateExecutableInfo failed: %d.",
+                "ExecutableInfo.populate failed: %d.",
                 status)
          throw InjectError.failedToReadExecutableInfo
       }
