@@ -28,6 +28,7 @@ class CodeInjector {
       case failedToFindTargetProcess
       case tooManyTargetProcesses
       case failedToAttachToTargetProcess
+      case failedToSuspendTargetProcess
       case failedToReadExecutableInfo
       case failedToApplyPatch(patchError: Patch.PatchError)
       case failedToUnapplyPatch(patchError: Patch.PatchError)
@@ -118,8 +119,10 @@ class CodeInjector {
             let executableInfo = try self.executableInfo()
 
             let patches = Patch.makePatchesForCurrentOperatingSystem()
-            for patch in patches {
-               try patch.apply(toExecutableDescribedBy: executableInfo)
+            try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
+               for patch in patches {
+                  try patch.apply(toExecutableDescribedBy: executableInfo)
+               }
             }
          } catch {
             os_log(.error, "Failed to inject code: %{public}@.", String(describing: error))
@@ -147,8 +150,10 @@ class CodeInjector {
             let executableInfo = try self.executableInfo()
 
             let patches = Patch.makePatchesForCurrentOperatingSystem()
-            for patch in patches.lazy.reversed() {
-               try patch.unapply(toExecutableDescribedBy: executableInfo)
+            try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
+               for patch in patches.lazy.reversed() {
+                  try patch.unapply(toExecutableDescribedBy: executableInfo)
+               }
             }
          } catch {
             os_log(.error, "Failed to remove code injection: %{public}@.", String(describing: error))
@@ -221,9 +226,11 @@ extension CodeInjector {
       }
 
       var executableInfo = ExecutableInfo()
-      status = ExecutableInfo.populateExecutableInfo(fromTaskVMDescribedBy: targetTask,
-                                                     forExecutableFilePath: "/usr/libexec/amfid",
-                                                     executableInfoOut: &executableInfo)
+      status = try whileSuspendingTask(targetTask) {
+         return ExecutableInfo.populateExecutableInfo(fromTaskVMDescribedBy: targetTask,
+                                                      forExecutableFilePath: "/usr/libexec/amfid",
+                                                      executableInfoOut: &executableInfo)
+      }
       if status != KERN_SUCCESS {
          os_log(.error,
                 "ExecutableInfo.populateExecutableInfo failed: %d.",
@@ -232,5 +239,31 @@ extension CodeInjector {
       }
 
       return executableInfo
+   }
+
+   private static func whileSuspendingTask<ReturnType>(_ targetTask: mach_port_name_t,
+                                                       do execute: () throws -> ReturnType) throws -> ReturnType {
+      var taskSuspensionToken: task_suspension_token_t = 0
+      let status = task_suspend2(targetTask, &taskSuspensionToken)
+      if status != KERN_SUCCESS {
+         os_log(.error,
+                "task_suspend2 failed: %d.",
+                status)
+         throw InjectError.failedToSuspendTargetProcess
+      }
+      os_log("Successfully suspended target task.")
+
+      defer {
+         let status = task_resume2(taskSuspensionToken)
+         if status != KERN_SUCCESS {
+            os_log(.fault,
+                   "task_resume2 failed: %d. This is quite serious because processes cannot be launched without first going through amfid. Unfortunately, there is nothing we can do about it.",
+                   status)
+         } else {
+            os_log("Successfully resumed target task.")
+         }
+      }
+
+      return try execute()
    }
 }
