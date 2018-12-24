@@ -28,6 +28,7 @@
 		E6B1F2B221C1FD7E00FB35E4 /* ExecutableInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */; };
 		E6B1F2BC21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */; };
 		E6B1F2BF21C5C33B00FB35E4 /* ActivityTracing.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */; };
+		E6D4062921D0AFCD00FB35E4 /* Data+TaskVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D4062821D0AFCD00FB35E4 /* Data+TaskVM.swift */; };
 		E6FAA06421CC269200FB35E4 /* PrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */; };
 		E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */; };
 /* End PBXBuildFile section */
@@ -84,6 +85,7 @@
 		E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutableInfo+ByteOrder.swift"; sourceTree = "<group>"; };
 		E6B1F2BD21C5C33B00FB35E4 /* ActivityTracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityTracing.h; sourceTree = "<group>"; };
 		E6B1F2BE21C5C33B00FB35E4 /* ActivityTracing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityTracing.m; sourceTree = "<group>"; };
+		E6D4062821D0AFCD00FB35E4 /* Data+TaskVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+TaskVM.swift"; sourceTree = "<group>"; };
 		E6FAA06321CC269200FB35E4 /* PrivilegedHelperVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivilegedHelperVersion.swift; sourceTree = "<group>"; };
 		E6FAA06521CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+GetPrivilegedHelperVersion.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -178,6 +180,7 @@
 				E667BBFE21CD745F00FB35E4 /* MemoryData.swift */,
 				E667BC0221CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift */,
 				E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */,
+				E6D4062821D0AFCD00FB35E4 /* Data+TaskVM.swift */,
 				E6D4062721D015EB00FB35E4 /* Low-Level Functions */,
 			);
 			path = "Code Injection";
@@ -309,6 +312,7 @@
 				E67FBFD721D0105A00FB35E4 /* ImageInfo.m in Sources */,
 				E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */,
 				E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */,
+				E6D4062921D0AFCD00FB35E4 /* Data+TaskVM.swift in Sources */,
 				E6FAA06621CC28EA00FB35E4 /* XPCServiceImplementation+GetPrivilegedHelperVersion.swift in Sources */,
 				E667BC0321CD7E2200FB35E4 /* ExecutableInfo+AddressInTaskSpace.swift in Sources */,
 				E667BBFF21CD745F00FB35E4 /* MemoryData.swift in Sources */,

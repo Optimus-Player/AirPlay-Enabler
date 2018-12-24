@@ -37,7 +37,7 @@ struct Patch {
 
    enum PatchError: Error {
       case failedToReadTargetProcessMemory
-      case unsupportedTargetProcessByteOrder
+      case failedToAccessMemoryData(memoryDataAccessError: MemoryData.AccessError)
       case requirementNotSatisfied
       case failedToFindTargetData
       case failedToModifyTargetDataMemoryProtection
@@ -83,8 +83,11 @@ struct Patch {
              "Patching task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      guard let replacementData = replacementMemoryData.data(forExecutableDescribedBy: executableInfo) else {
-         throw PatchError.unsupportedTargetProcessByteOrder
+      let replacementData: Data
+      do {
+         replacementData = try replacementMemoryData.data(forExecutableDescribedBy: executableInfo)
+      } catch let error as MemoryData.AccessError {
+         throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
       }
       let replacementDataByteCount = replacementData.count
 
@@ -128,8 +131,11 @@ struct Patch {
              "Unapplying patch to task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      guard let targetData = targetMemoryData.data(forExecutableDescribedBy: executableInfo) else {
-         throw PatchError.unsupportedTargetProcessByteOrder
+      let targetData: Data
+      do {
+         targetData = try targetMemoryData.data(forExecutableDescribedBy: executableInfo)
+      } catch let error as MemoryData.AccessError {
+         throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
       }
       let targetDataByteCount = targetData.count
 

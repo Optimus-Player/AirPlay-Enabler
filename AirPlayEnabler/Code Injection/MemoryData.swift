@@ -11,49 +11,75 @@ import Foundation
 struct MemoryData: CustomStringConvertible {
    // MARK: - Initialization
 
-   init(littleEndianData: Data, absoluteAddressRanges: [Range<Int>] = []) {
+   init(littleEndianData: Data,
+        absoluteAddressRanges: [Range<Int>] = [],
+        externalSymbolInfos: [ExternalSymbolInfo] = []) {
       let count = littleEndianData.count
 
       precondition(MemoryData.areRangesValid(absoluteAddressRanges, forDataCount: count))
+      precondition(MemoryData.areExternalSymbolInfosValid(externalSymbolInfos, forDataCount: count))
 
       self.littleEndianData = littleEndianData
       self.bigEndianData = nil
       self.count = count
+
       self.absoluteAddressRanges = absoluteAddressRanges
+      self.externalSymbolInfos = externalSymbolInfos
    }
 
-   init(bigEndianData: Data, absoluteAddressRanges: [Range<Int>] = []) {
+   init(bigEndianData: Data,
+        absoluteAddressRanges: [Range<Int>] = [],
+        externalSymbolInfos: [ExternalSymbolInfo] = []) {
       let count = bigEndianData.count
 
       precondition(MemoryData.areRangesValid(absoluteAddressRanges, forDataCount: count))
+      precondition(MemoryData.areExternalSymbolInfosValid(externalSymbolInfos, forDataCount: count))
 
       self.littleEndianData = nil
       self.bigEndianData = bigEndianData
       self.count = count
+
       self.absoluteAddressRanges = absoluteAddressRanges
+      self.externalSymbolInfos = externalSymbolInfos
    }
 
-   init(littleEndianData: Data, bigEndianData: Data, absoluteAddressRanges: [Range<Int>] = []) {
+   init(littleEndianData: Data,
+        bigEndianData: Data,
+        absoluteAddressRanges: [Range<Int>] = [],
+        externalSymbolInfos: [ExternalSymbolInfo] = []) {
       let count = littleEndianData.count
 
       precondition(count == bigEndianData.count)
       precondition(MemoryData.areRangesValid(absoluteAddressRanges, forDataCount: count))
+      precondition(MemoryData.areExternalSymbolInfosValid(externalSymbolInfos, forDataCount: count))
 
       self.littleEndianData = littleEndianData
       self.bigEndianData = bigEndianData
       self.count = count
+
       self.absoluteAddressRanges = absoluteAddressRanges
+      self.externalSymbolInfos = externalSymbolInfos
    }
 
-   private static func areRangesValid(_ ranges: [Range<Int>], forDataCount dataCount: Int) -> Bool {
-      for range in ranges {
-         if range.startIndex < 0 || range.endIndex > dataCount {
-            return false
-         }
+   private static func areRangesValid(_ ranges: [Range<Int>],
+                                      forDataCount dataCount: Int) -> Bool {
+      return ranges.allSatisfy { isRangeValid($0, forDataCount: dataCount) }
+   }
 
-         if range.count != 8 {  // 64-bit
-            return false
-         }
+   private static func areExternalSymbolInfosValid(_ externalSymbolInfos: [ExternalSymbolInfo],
+                                                   forDataCount dataCount: Int) -> Bool {
+      return externalSymbolInfos.lazy
+         .map { $0.absoluteAddressRange }
+         .allSatisfy { isRangeValid($0, forDataCount: dataCount) }
+   }
+
+   private static func isRangeValid(_ range: Range<Int>, forDataCount dataCount: Int) -> Bool {
+      if range.startIndex < 0 || range.endIndex > dataCount {
+         return false
+      }
+
+      if range.count != 8 {  // 64-bit
+         return false
       }
 
       return true
@@ -63,17 +89,21 @@ struct MemoryData: CustomStringConvertible {
 
    private let littleEndianData: Data?
    private let bigEndianData: Data?
-   private let absoluteAddressRanges: [Range<Int>]
-
    let count: Int
+
+   private let absoluteAddressRanges: [Range<Int>]
+   private let externalSymbolInfos: [ExternalSymbolInfo]
 
    // MARK: - Retrieving Data
 
-   func data(forExecutableDescribedBy executableInfo: ExecutableInfo) -> Data? {
+   enum AccessError: Error {
+      case unsupportedTargetByteOrder
+      case failedToResolveExternalSymbol
+   }
+
+   func data(forExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Data {
       let executableFileByteOrder = executableInfo.executableFileByteOrder
-      guard var data = self.data(in: executableFileByteOrder) else {
-         return nil
-      }
+      var data = try self.data(in: executableFileByteOrder)
 
       let aslrOffset = executableInfo.aslrOffset
 
@@ -94,25 +124,48 @@ struct MemoryData: CustomStringConvertible {
          data[range] = addressData
       }
 
+      for externalSymbolInfo in externalSymbolInfos {
+         let absoluteAddressRange = externalSymbolInfo.absoluteAddressRange
+
+         let currentAbsoluteAddressData = data[absoluteAddressRange]
+         let newAbsoluteAddressData = try externalSymbolInfo.externalSymbolPointerData(fromExecutableDescribedBy: executableInfo)
+
+         let addressSizeInBytes = absoluteAddressRange.count
+         switch addressSizeInBytes {
+         case 8:  // 64-bit
+            os_log(.debug,
+                   "Replacing absolute address 0x%llx with resolved external symbol absolute address 0x%llx.",
+                   UInt64(source: currentAbsoluteAddressData,
+                          sourceByteOrder: executableFileByteOrder),
+                   UInt64(source: newAbsoluteAddressData,
+                          sourceByteOrder: executableFileByteOrder))
+
+         default:
+            preconditionFailure("Unsupported absolute address size: \(addressSizeInBytes) bytes.")
+         }
+
+         data[absoluteAddressRange] = newAbsoluteAddressData
+      }
+
       return data
    }
 
-   private func data(in targetByteOrder: NXByteOrder) -> Data? {
+   private func data(in targetByteOrder: NXByteOrder) throws -> Data {
       switch targetByteOrder {
       case NX_LittleEndian:
          guard let littleEndianData = littleEndianData else {
-            return nil
+            throw AccessError.unsupportedTargetByteOrder
          }
          return littleEndianData
 
       case NX_BigEndian:
          guard let bigEndianData = bigEndianData else {
-            return nil
+            throw AccessError.unsupportedTargetByteOrder
          }
          return bigEndianData
 
       default:
-         return nil
+         throw AccessError.unsupportedTargetByteOrder
       }
    }
 
@@ -133,7 +186,23 @@ struct MemoryData: CustomStringConvertible {
    }
 }
 
+// MARK: -
+
 fileprivate extension FixedWidthInteger where Self: UnsignedInteger {
+   init(source data: Data, sourceByteOrder: NXByteOrder) {
+      var source: Self = 0
+      data.withUnsafeBytes { (pointer: UnsafePointer<Self>) in
+         source = pointer.pointee
+      }
+
+      let needsByteSwap = NXHostByteOrder() != sourceByteOrder
+      if needsByteSwap {
+         self = source.byteSwapped
+      } else {
+         self = source
+      }
+   }
+
    static func apply(aslrOffset: mach_vm_offset_t,
                      to addressData: inout Data,
                      addressDataByteOrder: NXByteOrder) {
@@ -161,6 +230,31 @@ fileprivate extension FixedWidthInteger where Self: UnsignedInteger {
          } else {
             addressPointer.pointee = address
          }
+      }
+   }
+}
+
+// MARK: -
+
+extension MemoryData {
+   struct ExternalSymbolInfo {
+      init(absoluteAddressRange: Range<Int>,
+           replaceWithPointerValueAt externalSymbolPointerAddressInExecutableFile: mach_vm_address_t) {
+         self.absoluteAddressRange = absoluteAddressRange
+         self.externalSymbolPointerAddressInExecutableFile = externalSymbolPointerAddressInExecutableFile
+      }
+
+      let absoluteAddressRange: Range<Int>
+      let externalSymbolPointerAddressInExecutableFile: mach_vm_address_t
+
+      fileprivate func externalSymbolPointerData(fromExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Data {
+         let externalSymbolPointerAddressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: externalSymbolPointerAddressInExecutableFile)
+
+         guard let data = Data(contentsOf: externalSymbolPointerAddressInTaskSpace, byteCount: mach_vm_size_t(absoluteAddressRange.count), inTaskVMDescribedBy: executableInfo.taskVMMap) else {
+            throw AccessError.failedToResolveExternalSymbol
+         }
+
+         return data
       }
    }
 }

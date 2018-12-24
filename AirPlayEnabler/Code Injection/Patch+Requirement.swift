@@ -28,48 +28,18 @@ extension Patch {
 
       func isSatisfied(byExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Bool {
          let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
-         os_log(.info,
-                "Reading task memory at address 0x%llx.",
-                addressInTaskSpace)
-
-         var bufferAddress: vm_offset_t = 0
-         let requestedBufferByteCount = mach_vm_size_t(requiredMemoryData.count)
-         var bufferByteCount: mach_msg_type_number_t = 0
-         let status = mach_vm_read(executableInfo.taskVMMap,
-                                   addressInTaskSpace,
-                                   requestedBufferByteCount,
-                                   &bufferAddress,
-                                   &bufferByteCount)
-         if status != KERN_SUCCESS {
-            os_log(.error,
-                   "mach_vm_read failed: %d.",
-                   status)
-            throw PatchError.failedToReadTargetProcessMemory
-         } else if bufferByteCount != requestedBufferByteCount {
-            os_log(.error,
-                   "mach_vm_read returned size (%{iec-bytes}u) that is different from the requested size (%{iec-bytes}llu).",
-                   bufferByteCount,
-                   requestedBufferByteCount);
+         guard let taskData = Data(contentsOf: addressInTaskSpace, byteCount: mach_vm_size_t(requiredMemoryData.count), inTaskVMDescribedBy: executableInfo.taskVMMap) else {
             throw PatchError.failedToReadTargetProcessMemory
          }
 
-         guard let bufferPointer = UnsafeMutableRawPointer(bitPattern: bufferAddress) else {
-            os_log(.fault,
-                   "mach_vm_read returned NULL pointer.")
-            throw PatchError.failedToReadTargetProcessMemory
-         }
-         let buffer = Data(bytesNoCopy: bufferPointer,
-                           count: Int(bufferByteCount),
-                           deallocator: .virtualMemory)
-         os_log(.info,
-                "Task memory: %{public}@.",
-                (buffer as NSData).description)
-
-         guard let requiredData = requiredMemoryData.data(forExecutableDescribedBy: executableInfo) else {
-            throw PatchError.unsupportedTargetProcessByteOrder
+         let requiredData: Data
+         do {
+            requiredData = try requiredMemoryData.data(forExecutableDescribedBy: executableInfo)
+         } catch let error as MemoryData.AccessError {
+            throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
          }
 
-         return buffer == requiredData
+         return taskData == requiredData
       }
    }
 }
