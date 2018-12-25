@@ -13,15 +13,15 @@ struct Patch {
 
    init(addressInExecutableFile: mach_vm_address_t,
         requirements: [Requirement],
-        targetMemoryData: MemoryData,
-        replacementMemoryData: MemoryData,
+        target: MemoryData,
+        replacement: InjectedCode,
         originalMemoryProtection: vm_prot_t) {
-      precondition(targetMemoryData.count == replacementMemoryData.count)
+      precondition(target.count == replacement.count)
 
       self.addressInExecutableFile = addressInExecutableFile
       self.requirements = requirements
-      self.targetMemoryData = targetMemoryData
-      self.replacementMemoryData = replacementMemoryData
+      self.target = target
+      self.replacement = replacement
       self.originalMemoryProtection = originalMemoryProtection
    }
 
@@ -29,15 +29,16 @@ struct Patch {
 
    private let addressInExecutableFile: mach_vm_address_t
    private let requirements: [Requirement]
-   private let targetMemoryData: MemoryData
-   private let replacementMemoryData: MemoryData
+   private let target: MemoryData
+   private let replacement: InjectedCode
    private let originalMemoryProtection: vm_prot_t
 
    // MARK: - Applying/Unapplying the Patch
 
    enum PatchError: Error {
       case failedToReadTargetProcessMemory
-      case failedToAccessMemoryData(memoryDataAccessError: MemoryData.AccessError)
+      case unsupportedTargetByteOrder
+      case failedToMakeInjectedCodeData(injectedCodeError: InjectedCode.DataCreationError)
       case requirementNotSatisfied
       case failedToFindTargetData
       case failedToModifyTargetDataMemoryProtection
@@ -47,14 +48,24 @@ struct Patch {
    }
 
    func needsPatch(forExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Bool {
-      let replacementDataRequirement = Requirement(addressInExecutableFile: addressInExecutableFile,
-                                                   requiredMemoryData: replacementMemoryData)
-      if try replacementDataRequirement.isSatisfied(byExecutableDescribedBy: executableInfo) {
+      let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
+      return try _needsPatch(forExecutableDescribedBy: executableInfo,
+                             replacementData: replacementData)
+   }
+
+   private func _needsPatch(forExecutableDescribedBy executableInfo: ExecutableInfo,
+                            replacementData: InjectedCode.Data) throws -> Bool {
+      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
+      guard let taskData = Data(contentsOf: addressInTaskSpace, byteCount: mach_vm_size_t(target.count), inTaskVMDescribedBy: executableInfo.taskVMMap) else {
+         throw PatchError.failedToReadTargetProcessMemory
+      }
+
+      if taskData == replacementData {
          return false
       }
 
       let targetDataRequirement = Requirement(addressInExecutableFile: addressInExecutableFile,
-                                              requiredMemoryData: targetMemoryData)
+                                              requiredMemoryData: target)
       guard try targetDataRequirement.isSatisfied(byExecutableDescribedBy: executableInfo) else {
          throw PatchError.failedToFindTargetData
       }
@@ -63,7 +74,9 @@ struct Patch {
    }
 
    func apply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
-      guard try needsPatch(forExecutableDescribedBy: executableInfo) else {
+      let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
+
+      guard try _needsPatch(forExecutableDescribedBy: executableInfo, replacementData: replacementData) else {
          os_log("Target data has already been patched; skipping.")
          return
       }
@@ -83,12 +96,6 @@ struct Patch {
              "Patching task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      let replacementData: Data
-      do {
-         replacementData = try replacementMemoryData.data(forExecutableDescribedBy: executableInfo)
-      } catch let error as MemoryData.AccessError {
-         throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
-      }
       let replacementDataByteCount = replacementData.count
 
       let status = mach_vm_protect(executableInfo.taskVMMap,
@@ -121,7 +128,8 @@ struct Patch {
    }
 
    func unapply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
-      guard try !needsPatch(forExecutableDescribedBy: executableInfo) else {
+      let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
+      guard try !_needsPatch(forExecutableDescribedBy: executableInfo, replacementData: replacementData) else {
          os_log("Target data has not been patched; skipping.")
          return
       }
@@ -131,11 +139,8 @@ struct Patch {
              "Unapplying patch to task memory at address 0x%llx.",
              addressInTaskSpace)
 
-      let targetData: Data
-      do {
-         targetData = try targetMemoryData.data(forExecutableDescribedBy: executableInfo)
-      } catch let error as MemoryData.AccessError {
-         throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
+      guard let targetData = target.data(in: executableInfo.executableFileByteOrder) else {
+         throw PatchError.unsupportedTargetByteOrder
       }
       let targetDataByteCount = targetData.count
 
@@ -166,5 +171,15 @@ struct Patch {
 
       os_log("Successfully unapplied patch to 0x%llx (in task space).",
              addressInTaskSpace)
+   }
+
+   private func makeReplacementData(forExecutableDescribedBy executableInfo: ExecutableInfo) throws -> InjectedCode.Data {
+      do {
+         return try replacement.makeData(forExecutableDescribedBy: executableInfo)
+      } catch let error as InjectedCode.DataCreationError {
+         throw PatchError.failedToMakeInjectedCodeData(injectedCodeError: error)
+      } catch {
+         fatalError("Caught error that is not of type `InjectedCode.DataCreationError`: \(error).")
+      }
    }
 }

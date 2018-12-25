@@ -32,11 +32,8 @@ extension Patch {
             throw PatchError.failedToReadTargetProcessMemory
          }
 
-         let requiredData: Data
-         do {
-            requiredData = try requiredMemoryData.data(forExecutableDescribedBy: executableInfo)
-         } catch let error as MemoryData.AccessError {
-            throw PatchError.failedToAccessMemoryData(memoryDataAccessError: error)
+         guard let requiredData = requiredMemoryData.data(in: executableInfo.executableFileByteOrder) else {
+            throw PatchError.unsupportedTargetByteOrder
          }
 
          return taskData == requiredData

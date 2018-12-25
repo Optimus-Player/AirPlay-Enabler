@@ -11,8 +11,8 @@ extension Patch {
       return [
          Patch(addressInExecutableFile: 0x10000315f,
                requirements: [],
-               targetMemoryData: MemoryData(littleEndianData: Data([0x45, 0x85, 0xe4, 0x74, 0x69])),
-               replacementMemoryData: MemoryData(littleEndianData: Data([0x45, 0x31, 0xe4, 0xeb, 0x69])),
+               target: MemoryData(littleEndianData: Data([0x45, 0x85, 0xe4, 0x74, 0x69])),
+               replacement: InjectedCode(memoryData: MemoryData(littleEndianData: Data([0x45, 0x31, 0xe4, 0xeb, 0x69]))),
                originalMemoryProtection: VM_PROT_READ | VM_PROT_EXECUTE)
       ]
    }
