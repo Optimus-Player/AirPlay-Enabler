@@ -14,37 +14,64 @@ struct InjectedCode {
 
    init(memoryData: MemoryData,
         absoluteAddressRanges: [Range<Int>] = [],
-        externalSymbolInfos: [ExternalSymbolInfo] = []) {
+        externalSymbolInfos: [ExternalSymbolInfo] = [],
+        writableRanges: [Range<Int>] = []) {
       let count = memoryData.count
-      precondition(InjectedCode.areRangesValid(absoluteAddressRanges, forDataCount: count))
-      precondition(InjectedCode.areExternalSymbolInfosValid(externalSymbolInfos, forDataCount: count))
+      precondition(InjectedCode.areRangesValid(absoluteAddressRanges,
+                                               forDataCount: count,
+                                               isAddress: true))
+      precondition(InjectedCode.areExternalSymbolInfosValid(externalSymbolInfos,
+                                                            forDataCount: count))
+      precondition(InjectedCode.areRangesValid(writableRanges,
+                                               forDataCount: count,
+                                               isAddress: false))
 
       self.memoryData = memoryData
       self.count = count
 
       self.absoluteAddressRanges = absoluteAddressRanges
       self.externalSymbolInfos = externalSymbolInfos
-   }
-
-   private static func areRangesValid(_ ranges: [Range<Int>],
-                                      forDataCount dataCount: Int) -> Bool {
-      return ranges.allSatisfy { isRangeValid($0, forDataCount: dataCount) }
+      self.writableRanges = writableRanges
    }
 
    private static func areExternalSymbolInfosValid(_ externalSymbolInfos: [ExternalSymbolInfo],
                                                    forDataCount dataCount: Int) -> Bool {
-      return externalSymbolInfos.lazy
-         .map { $0.absoluteAddressRange }
-         .allSatisfy { isRangeValid($0, forDataCount: dataCount) }
+      return areRangesValid(externalSymbolInfos.map { $0.absoluteAddressRange },
+                            forDataCount: dataCount,
+                            isAddress: true)
    }
 
-   private static func isRangeValid(_ range: Range<Int>, forDataCount dataCount: Int) -> Bool {
+   private static func areRangesValid(_ ranges: [Range<Int>],
+                                      forDataCount dataCount: Int,
+                                      isAddress: Bool) -> Bool {
+      if !ranges.allSatisfy { isRangeValid($0, forDataCount: dataCount, isAddress: isAddress) } {
+         return false
+      }
+
+      if ranges.count > 1 {
+         let ranges = ranges.sorted { $0.startIndex < $1.startIndex }
+         for (idx, lhsRange) in ranges.dropLast().enumerated() {
+            let rhsRange = ranges[idx + 1]
+            if lhsRange.overlaps(rhsRange) {
+               return false
+            }
+         }
+      }
+
+      return true
+   }
+
+   private static func isRangeValid(_ range: Range<Int>,
+                                    forDataCount dataCount: Int,
+                                    isAddress: Bool) -> Bool {
       if range.startIndex < 0 || range.endIndex > dataCount {
          return false
       }
 
-      if range.count != 8 {  // 64-bit
-         return false
+      if isAddress {
+         if range.count != 8 {  // 64-bit
+            return false
+         }
       }
 
       return true
@@ -57,6 +84,7 @@ struct InjectedCode {
 
    private let absoluteAddressRanges: [Range<Int>]
    private let externalSymbolInfos: [ExternalSymbolInfo]
+   private let writableRanges: [Range<Int>]
 
    // MARK: - Making Data
 
@@ -114,7 +142,7 @@ struct InjectedCode {
       }
 
       return Data(underlyingData: data,
-                  rangesToIgnore: [])
+                  rangesToIgnore: writableRanges)
    }
 }
 
