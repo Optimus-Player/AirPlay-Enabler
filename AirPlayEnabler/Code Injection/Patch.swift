@@ -74,10 +74,12 @@ struct Patch {
    }
 
    func apply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
 
       guard try _needsPatch(forExecutableDescribedBy: executableInfo, replacementData: replacementData) else {
-         os_log("Target data has already been patched; skipping.")
+         os_log("Target data at 0x%llx (in task space) has already been patched; skipping.",
+                addressInTaskSpace)
          return
       }
 
@@ -91,7 +93,6 @@ struct Patch {
          }
       }
 
-      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       os_log(.info,
              "Patching task memory at address 0x%llx.",
              addressInTaskSpace)
@@ -128,13 +129,15 @@ struct Patch {
    }
 
    func unapply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
+
       guard try !_needsPatch(forExecutableDescribedBy: executableInfo, replacementData: replacementData) else {
-         os_log("Target data has not been patched; skipping.")
+         os_log("Target data at 0x%llx (in task space) has not been patched; skipping.",
+                addressInTaskSpace)
          return
       }
 
-      let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       os_log(.info,
              "Unapplying patch to task memory at address 0x%llx.",
              addressInTaskSpace)
