@@ -48,9 +48,11 @@ struct Patch {
    }
 
    func needsPatch(forExecutableDescribedBy executableInfo: ExecutableInfo) throws -> Bool {
-      let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
-      return try _needsPatch(forExecutableDescribedBy: executableInfo,
-                             replacementData: replacementData)
+      return try OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
+         let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
+         return try _needsPatch(forExecutableDescribedBy: executableInfo,
+                                replacementData: replacementData)
+      }
    }
 
    private func _needsPatch(forExecutableDescribedBy executableInfo: ExecutableInfo,
@@ -74,6 +76,12 @@ struct Patch {
    }
 
    func apply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      try OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
+         try _apply(toExecutableDescribedBy: executableInfo)
+      }
+   }
+
+   func _apply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
       let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
 
@@ -129,6 +137,12 @@ struct Patch {
    }
 
    func unapply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
+      try OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
+         try _unapply(toExecutableDescribedBy: executableInfo)
+      }
+   }
+
+   func _unapply(toExecutableDescribedBy executableInfo: ExecutableInfo) throws {
       let addressInTaskSpace = executableInfo.addressInTaskSpace(fromAddressInExecutableFile: addressInExecutableFile)
       let replacementData = try self.makeReplacementData(forExecutableDescribedBy: executableInfo)
 

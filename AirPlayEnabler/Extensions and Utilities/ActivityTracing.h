@@ -72,6 +72,6 @@ typedef NS_OPTIONS(uint32_t, APEOSActivityFlag) {
 OS_NOTHROW
 void ape_os_activity_initiate(NSString *description,
                               APEOSActivityFlag flags,
-                              os_block_t activity_block OS_NOESCAPE NS_SWIFT_NAME(activityBlock)) NS_SWIFT_NAME(OSInitiateActivity(named:flags:activityBlock:));
+                              os_block_t activity_block OS_NOESCAPE);
 
 OS_ASSUME_NONNULL_END

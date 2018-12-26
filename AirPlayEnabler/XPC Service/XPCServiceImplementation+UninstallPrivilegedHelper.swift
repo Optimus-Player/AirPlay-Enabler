@@ -12,7 +12,7 @@ import os
 
 extension XPCServiceImplementation {
    func uninstallPrivilegedHelper(withReply reply: @escaping (NSError) -> Void) {
-      OSInitiateActivity(named: #function, flags: [.ifNonePresent]) {
+      OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
          _uninstallPrivilegedHelper(withReply: reply)
       }
    }

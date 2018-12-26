@@ -10,7 +10,7 @@ import AirPlayEnablerInterface
 
 extension XPCServiceImplementation {
    func getPrivilegedHelperVersion(withReply reply: @escaping (_ version: PrivilegedHelperVersion) -> Void) {
-      OSInitiateActivity(named: #function, flags: [.ifNonePresent]) {
+      OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
          reply(PrivilegedHelperInfo.shared.version)
       }
    }

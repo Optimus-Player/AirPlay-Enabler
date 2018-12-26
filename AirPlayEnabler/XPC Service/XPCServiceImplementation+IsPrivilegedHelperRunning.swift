@@ -8,7 +8,7 @@
 
 extension XPCServiceImplementation {
    func isPrivilegedHelperRunning(withReply reply: @escaping () -> Void) {
-      OSInitiateActivity(named: #function, flags: [.ifNonePresent]) {
+      OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
          reply()
       }
    }

@@ -10,6 +10,7 @@
 
 #import "ExecutableInfo.h"
 
+@import os.activity;
 @import os.log;
 
 #import "Common.h"
@@ -19,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 // MARK: - Static Function Declarations
 
+static kern_return_t _ape_executable_info_populate(vm_map_t task_vm_map,
+                                                   const char *executable_file_path,
+                                                   struct ape_executable_info *executable_info_out);
 static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,
                                                        mach_vm_address_t address_in_task_space,
                                                        bool *is_supported_executable_out,
@@ -31,15 +35,37 @@ static kern_return_t determine_aslr_offset(vm_map_t task_vm_map,
 kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
                                            const char *executable_file_path,
                                            struct ape_executable_info *executable_info_out) {
-   ENTER_FUNCTION();
+   __block kern_return_t status = KERN_SUCCESS;
 
+   const char *function_name = __FUNCTION__;
+   os_activity_initiate("ape_executable_info_populate", OS_ACTIVITY_FLAG_DEFAULT, ^{
+      os_log_debug(OS_LOG_DEFAULT,
+                   "Entering %s.",
+                   function_name);
+
+      status = _ape_executable_info_populate(task_vm_map,
+                                             executable_file_path,
+                                             executable_info_out);
+
+      os_log_debug(OS_LOG_DEFAULT,
+                   "Exiting %s with return value %d.",
+                   function_name,
+                   status);
+   });
+
+   return status;
+}
+
+static kern_return_t _ape_executable_info_populate(vm_map_t task_vm_map,
+                                                   const char *executable_file_path,
+                                                   struct ape_executable_info *executable_info_out) {
    if (executable_file_path == NULL) {
       os_log_error(OS_LOG_DEFAULT, "executable_file_path should not be NULL.");
-      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
+      return KERN_INVALID_ARGUMENT;
    }
    if (executable_info_out == NULL) {
       os_log_error(OS_LOG_DEFAULT, "executable_info_out should not be NULL.");
-      EXIT_FUNCTION(KERN_INVALID_ARGUMENT);
+      return KERN_INVALID_ARGUMENT;
    }
 
    struct task_dyld_info dyld_info = {0};
@@ -52,12 +78,12 @@ kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
       os_log_error(OS_LOG_DEFAULT,
                    "task_info failed: %d.",
                    status);
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    } else if (task_info_count != TASK_DYLD_INFO_COUNT) {
       os_log_fault(OS_LOG_DEFAULT,
                    "task_info returned info count that does not correspond to task_dyld_info struct: %u.",
                    task_info_count);
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    }
 
    integer_t dyld_all_image_infos_format = dyld_info.all_image_info_format;
@@ -65,7 +91,7 @@ kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
       os_log_error(OS_LOG_DEFAULT,
                    "Unsupported dyld_all_image_infos format: %d.",
                    dyld_all_image_infos_format);
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    }
 
    mach_vm_address_t dyld_all_image_infos_address_in_task_space = dyld_info.all_image_info_addr;
@@ -79,7 +105,7 @@ kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
       os_log_error(OS_LOG_DEFAULT,
                    "ape_image_info_find failed: %d.",
                    status);
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    }
 
    bool is_supported_executable = false;
@@ -91,16 +117,16 @@ kern_return_t ape_executable_info_populate(vm_map_t task_vm_map,
       os_log_error(OS_LOG_DEFAULT,
                    "read_executable_header_at_address failed: %d.",
                    status);
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    } else if (!is_supported_executable) {
       os_log_error(OS_LOG_DEFAULT,
                    "Unsupported executable format/architecture.");
-      EXIT_FUNCTION(KERN_FAILURE);
+      return KERN_FAILURE;
    }
 
    executable_info_out->dyld_all_image_infos_address_in_task_space = dyld_all_image_infos_address_in_task_space;
 
-   EXIT_FUNCTION(KERN_SUCCESS);
+   return KERN_SUCCESS;
 }
 
 static kern_return_t read_executable_header_at_address(vm_map_t task_vm_map,

@@ -106,8 +106,10 @@ class CodeInjector {
    // MARK: - Injecting Code
 
    func injectCode() throws {
-      try serialQueue.sync {
-         try _injectCode()
+      try OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
+         try serialQueue.sync {
+            try _injectCode()
+         }
       }
    }
 
@@ -137,8 +139,10 @@ class CodeInjector {
    }
 
    func removeCodeInjection() throws {
-      try serialQueue.sync {
-         try _removeCodeInjection()
+      try OSInitiateActivity(named: "\(type(of: self)).\(#function)") {
+         try serialQueue.sync {
+            try _removeCodeInjection()
+         }
       }
    }
 
