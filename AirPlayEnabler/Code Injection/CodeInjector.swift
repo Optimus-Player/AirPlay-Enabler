@@ -24,6 +24,7 @@ class CodeInjector {
 
    enum InjectError: Error {
       case pgrepProcessRunError(underlyingError: Error)
+      case pgrepFailed
       case invalidPgrepOutput(output: Data)
       case failedToFindTargetProcess
       case tooManyTargetProcesses
@@ -181,7 +182,8 @@ extension CodeInjector {
              processName)
 
       let pgrepProcess = Process()
-      pgrepProcess.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
+      let pgrepExecutablePath = "/usr/bin/pgrep"
+      pgrepProcess.executableURL = URL(fileURLWithPath: pgrepExecutablePath)
       pgrepProcess.arguments = ["^\(processName)$"]
 
       let standardOutputPipe = Pipe()
@@ -191,16 +193,34 @@ extension CodeInjector {
          try pgrepProcess.run()
       } catch {
          os_log(.fault,
-                "Failed to run pgrep process: %{public}@.",
+                "Failed to run `%{public}@`: %{public}@.",
+                pgrepExecutablePath,
                 String(describing: error))
          throw error
       }
       pgrepProcess.waitUntilExit()
 
+      guard pgrepProcess.terminationReason == .exit else {
+         os_log(.fault,
+                "`%{public}@` was killed by an uncaught signal.",
+                pgrepExecutablePath)
+         throw InjectError.pgrepFailed
+      }
+
+      let pgrepStatus = pgrepProcess.terminationStatus
+      guard pgrepStatus == 0 else {
+         os_log(.fault,
+                "`%{public}@` failed: %d.",
+                pgrepExecutablePath,
+                pgrepStatus)
+         throw InjectError.pgrepFailed
+      }
+
       let standardOutputData = standardOutputPipe.fileHandleForReading.readDataToEndOfFile()
       guard let standardOutputString = String(data: standardOutputData, encoding: .utf8) else {
          os_log(.error,
-                "The pgrep process sent non-UTF-8-encoded data to its standard output: %{public}@.",
+                "`%{public}@` sent non-UTF-8-encoded data to its standard output: %{public}@.",
+                pgrepExecutablePath,
                 (standardOutputData as NSData).description)
          throw InjectError.invalidPgrepOutput(output: standardOutputData)
       }
@@ -209,7 +229,8 @@ extension CodeInjector {
       let pids = try pidStrings.map { (pidString) -> pid_t in
          guard let pid = pid_t(pidString) else {
             os_log(.fault,
-                   "The pgrep process sent an incorrectly-formatted PID string to its standard output: %{public}@.",
+                   "`%{public}@` sent an incorrectly-formatted PID string to its standard output: %{public}@.",
+                   pgrepExecutablePath,
                    String(pidString))
             throw InjectError.invalidPgrepOutput(output: standardOutputData)
          }
