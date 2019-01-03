@@ -198,6 +198,8 @@ extension CodeInjector {
                 String(describing: error))
          throw error
       }
+
+      let standardOutputData = standardOutputPipe.fileHandleForReading.readDataToEndOfFile()
       pgrepProcess.waitUntilExit()
 
       guard pgrepProcess.terminationReason == .exit else {
@@ -216,7 +218,6 @@ extension CodeInjector {
          throw InjectError.pgrepFailed
       }
 
-      let standardOutputData = standardOutputPipe.fileHandleForReading.readDataToEndOfFile()
       guard let standardOutputString = String(data: standardOutputData, encoding: .utf8) else {
          os_log(.error,
                 "`%{public}@` sent non-UTF-8-encoded data to its standard output: %{public}@.",
