@@ -96,6 +96,12 @@ public class PrivilegedHelperVersion: NSObject, NSSecureCoding, Comparable {
       return lhs.buildNumber < rhs.buildNumber
    }
 
+   // MARK: - Hashable Conformance
+
+   public override var hash: Int {
+      return buildNumber.hashValue
+   }
+
    // MARK: - Equatable Conformance
 
    public override func isEqual(_ object: Any?) -> Bool {
