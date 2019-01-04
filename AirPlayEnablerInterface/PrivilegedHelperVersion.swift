@@ -106,9 +106,31 @@ public class PrivilegedHelperVersion: NSObject, NSSecureCoding, Comparable {
       return self.buildNumber == other.buildNumber
    }
 
+   public static func isMarketingVersionEqual(_ lhs: PrivilegedHelperVersion,
+                                              _ rhs: PrivilegedHelperVersion) -> Bool {
+      return
+         lhs.majorVersion == rhs.majorVersion &&
+            lhs.minorVersion == rhs.minorVersion &&
+            lhs.patchVersion == rhs.patchVersion
+   }
+
    // MARK: - CustomStringConvertible Conformance
 
    public override var description: String {
-      return "\(majorVersion).\(minorVersion).\(patchVersion) (\(buildNumber))"
+      return description(includingBuildNumber: true)
+   }
+
+   public var marketingDescription: String {
+      return description(includingBuildNumber: false)
+   }
+
+   public func description(includingBuildNumber shouldIncludeBuildNumber: Bool) -> String {
+      var description = "\(majorVersion).\(minorVersion).\(patchVersion)"
+
+      if shouldIncludeBuildNumber {
+         description += " (\(buildNumber))"
+      }
+
+      return description
    }
 }
