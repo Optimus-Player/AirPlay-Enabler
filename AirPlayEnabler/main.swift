@@ -10,22 +10,24 @@ import Dispatch
 import Foundation
 import os
 
-os_log("AirPlayEnabler has started.")
+autoreleasepool {
+   os_log("AirPlayEnabler has started.")
 
-let machServiceName = PrivilegedHelperInfo.shared.machServiceName
-let xpcListener = NSXPCListener(machServiceName: machServiceName)
+   let machServiceName = PrivilegedHelperInfo.shared.machServiceName
+   let xpcListener = NSXPCListener(machServiceName: machServiceName)
 
-let xpcService = XPCService()
-xpcListener.delegate = xpcService
+   let xpcService = XPCService()
+   xpcListener.delegate = xpcService
 
-DispatchQueue.main.async {
-   OSInitiateActivity(named: "Initial Code Injection", flags: []) {
-      try? CodeInjector.shared.injectCode()
+   DispatchQueue.main.async {
+      OSInitiateActivity(named: "Initial Code Injection", flags: []) {
+         try? CodeInjector.shared.injectCode()
+      }
+
+      os_log("Starting XPC listener for Mach service `%{public}@`.",
+             machServiceName)
+      xpcListener.resume()
    }
 
-   os_log("Starting XPC listener for Mach service `%{public}@`.",
-          machServiceName)
-   xpcListener.resume()
+   dispatchMain()
 }
-
-dispatchMain()
