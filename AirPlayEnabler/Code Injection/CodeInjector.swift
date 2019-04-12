@@ -124,7 +124,11 @@ class CodeInjector {
             let patches = Patch.makePatchesForCurrentOperatingSystem()
             try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
                for patch in patches {
-                  try patch.apply(toExecutableDescribedBy: executableInfo)
+                  do {
+                     try patch.apply(toExecutableDescribedBy: executableInfo)
+                  } catch let error as Patch.PatchError {
+                     throw InjectError.failedToApplyPatch(patchError: error)
+                  }
                }
             }
          } catch {
@@ -157,7 +161,11 @@ class CodeInjector {
             let patches = Patch.makePatchesForCurrentOperatingSystem()
             try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
                for patch in patches.lazy.reversed() {
-                  try patch.unapply(toExecutableDescribedBy: executableInfo)
+                  do {
+                     try patch.unapply(toExecutableDescribedBy: executableInfo)
+                  } catch let error as Patch.PatchError {
+                     throw InjectError.failedToUnapplyPatch(patchError: error)
+                  }
                }
             }
          } catch {
