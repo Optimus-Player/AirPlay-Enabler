@@ -125,11 +125,25 @@ class CodeInjector {
 
             let patches = Patch.makePatchesForCurrentOperatingSystem()
             try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
-               for patch in patches {
+               for (idx, patch) in patches.enumerated() {
                   do {
-                     try patch.apply(toExecutableDescribedBy: executableInfo)
-                  } catch let error as Patch.PatchError {
-                     throw InjectError.failedToApplyPatch(patchError: error)
+                     do {
+                        try patch.apply(toExecutableDescribedBy: executableInfo)
+                     } catch let error as Patch.PatchError {
+                        throw InjectError.failedToApplyPatch(patchError: error)
+                     }
+                  } catch {
+                     os_log("Failed to apply patch. Unapplying already-applied patches.")
+
+                     for patch in patches[0..<idx].reversed() {
+                        do {
+                           try patch.unapply(toExecutableDescribedBy: executableInfo)
+                        } catch {
+                           // Ignoring since we want to throw the original patch error.
+                        }
+                     }
+
+                     throw error
                   }
                }
             }
@@ -160,13 +174,27 @@ class CodeInjector {
          do {
             let executableInfo = try self.executableInfo()
 
-            let patches = Patch.makePatchesForCurrentOperatingSystem()
+            let patches = Array(Patch.makePatchesForCurrentOperatingSystem().reversed())
             try CodeInjector.whileSuspendingTask(executableInfo.taskVMMap) {
-               for patch in patches.lazy.reversed() {
+               for (idx, patch) in patches.enumerated() {
                   do {
-                     try patch.unapply(toExecutableDescribedBy: executableInfo)
-                  } catch let error as Patch.PatchError {
-                     throw InjectError.failedToUnapplyPatch(patchError: error)
+                     do {
+                        try patch.unapply(toExecutableDescribedBy: executableInfo)
+                     } catch let error as Patch.PatchError {
+                        throw InjectError.failedToUnapplyPatch(patchError: error)
+                     }
+                  } catch {
+                     os_log("Failed to unapply patch. Reapplying already-unapplied patches.")
+
+                     for patch in patches[0..<idx].reversed() {
+                        do {
+                           try patch.apply(toExecutableDescribedBy: executableInfo)
+                        } catch {
+                           // Ignoring since we want to throw the original patch error.
+                        }
+                     }
+
+                     throw error
                   }
                }
             }
