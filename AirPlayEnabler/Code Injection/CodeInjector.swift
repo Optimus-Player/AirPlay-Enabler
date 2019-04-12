@@ -96,6 +96,8 @@ class CodeInjector {
          }
 
          return true
+      } catch Patch.PatchError.failedToFindTargetData {
+         return false
       } catch {
          os_log(.error,
                 "Failed to check code injection activation status: %{public}@; assuming code injection is inactive.",
