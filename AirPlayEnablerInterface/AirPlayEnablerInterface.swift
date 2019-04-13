@@ -27,8 +27,8 @@ public protocol AirPlayEnablerInterface {
    func getPrivilegedHelperVersion(withReply reply: @escaping (_ version: PrivilegedHelperVersion) -> Void)
 
    /**
-    Deletes the privileged helper files, unregisters the privileged helper in launchd,
-    and terminates the running process.
+    Deletes the privileged helper files, removes the code injection, unregisters
+    the privileged helper in launchd, and terminates the running process.
 
     After calling this function, wait for a connection interruption and then call
     `isPrivilegedHelperRunning(withReply:)` to confirm that the privileged helper has
