@@ -1,0 +1,4 @@
+Similar to macOS 10.14 except for amount of free space and different addresses.
+
+amfid Capacity:
+0x100007af0 to 0x100007fff => 0x510

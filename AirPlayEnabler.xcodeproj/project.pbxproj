@@ -24,6 +24,7 @@
 		E688AE7521C97F2400FB35E4 /* AirPlayEnablerInterfaceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE7421C97F2400FB35E4 /* AirPlayEnablerInterfaceError.swift */; };
 		E688AE7821C9AE1100FB35E4 /* PrivilegedHelperInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE7721C9AE1100FB35E4 /* PrivilegedHelperInfo.swift */; };
 		E688AE7A21C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */; };
+		E69310752261544700FB35E4 /* Patch+MacOS10_14_4.swift in Sources */ = {isa = PBXBuildFile; fileRef = E69310742261544700FB35E4 /* Patch+MacOS10_14_4.swift */; };
 		E69A58C421CACFC600FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift in Sources */ = {isa = PBXBuildFile; fileRef = E69A58C321CACFC500FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift */; };
 		E6B1F2B221C1FD7E00FB35E4 /* ExecutableInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */; };
 		E6B1F2BC21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B1F2BB21C4A39900FB35E4 /* ExecutableInfo+ByteOrder.swift */; };
@@ -82,6 +83,7 @@
 		E688AE7421C97F2400FB35E4 /* AirPlayEnablerInterfaceError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayEnablerInterfaceError.swift; sourceTree = "<group>"; };
 		E688AE7721C9AE1100FB35E4 /* PrivilegedHelperInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivilegedHelperInfo.swift; sourceTree = "<group>"; };
 		E688AE7921C9B84A00FB35E4 /* XPCServiceImplementation+UninstallPrivilegedHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+UninstallPrivilegedHelper.swift"; sourceTree = "<group>"; };
+		E69310742261544700FB35E4 /* Patch+MacOS10_14_4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Patch+MacOS10_14_4.swift"; sourceTree = "<group>"; };
 		E69A58C321CACFC500FB35E4 /* XPCServiceImplementation+IsPrivilegedHelperRunning.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XPCServiceImplementation+IsPrivilegedHelperRunning.swift"; sourceTree = "<group>"; };
 		E6B1F2B021C1FD7E00FB35E4 /* AirPlayEnabler-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirPlayEnabler-Bridging-Header.h"; sourceTree = "<group>"; };
 		E6B1F2B121C1FD7E00FB35E4 /* ExecutableInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ExecutableInfo.m; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				E667BC0921CDC51400FB35E4 /* Patch+MacOS10_14.swift */,
+				E69310742261544700FB35E4 /* Patch+MacOS10_14_4.swift */,
 			);
 			path = Patches;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 				E6B1F2B221C1FD7E00FB35E4 /* ExecutableInfo.m in Sources */,
 				E667BC0A21CDC51400FB35E4 /* Patch+MacOS10_14.swift in Sources */,
 				E6D4062B21D1F9C700FB35E4 /* InjectedCode.swift in Sources */,
+				E69310752261544700FB35E4 /* Patch+MacOS10_14_4.swift in Sources */,
 				E67FBFDA21D010F000FB35E4 /* Common.m in Sources */,
 				E6D4063521D3390400FB35E4 /* ActivityTracing.swift in Sources */,
 				E65DDEB021C1F2A500FB35E4 /* CodeInjector.swift in Sources */,

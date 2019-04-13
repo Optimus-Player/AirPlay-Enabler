@@ -20,7 +20,7 @@
 	<string>Copyright © 2018 Darren Mo. All rights reserved.</string>
 	<key>SMAuthorizedClients</key>
 	<array>
-		<string>anchor apple generic and identifier &quot;mo.darren.optimus.player.mac&quot; and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = PVLQ49LAH3)</string>
+		<string>anchor apple generic and identifier "mo.darren.optimus.player.mac" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = PVLQ49LAH3)</string>
 	</array>
 </dict>
 </plist>
