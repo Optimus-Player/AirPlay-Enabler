@@ -498,6 +498,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--options=runtime";
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
@@ -528,6 +529,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--options=runtime";
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
