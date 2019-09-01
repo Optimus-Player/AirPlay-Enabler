@@ -2,6 +2,8 @@
 
 A helper tool that enables [Optimus Player](https://www.optimusplayer.com/) to stream audio using AirPlay 2.
 
+Update: No longer needed on macOS Catalina or later.
+
 ## License
 
 Copyright © 2018–2019 Darren Mo. All rights reserved.
@@ -16,7 +18,7 @@ The first version of AirPlay was implemented at the system level, requiring no c
 
 On iOS and tvOS, apps use [`AVRoutePickerView`](https://developer.apple.com/documentation/avkit/avroutepickerview) to route audio to AirPlay 2 output devices. This API also exists on macOS (not public yet), but is missing a core component, rendering it unusable.
 
-As of macOS 10.14.5, no apps aside from iTunes have been able to use AirPlay 2. Until now.
+As of macOS 10.14.6, no apps aside from iTunes have been able to use AirPlay 2. Until now.
 
 ## Problem
 
