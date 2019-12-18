@@ -124,6 +124,13 @@ extension XPCServiceImplementation {
    private static func removeCodeInjection() throws {
       do {
          try CodeInjector.shared.removeCodeInjection()
+      } catch CodeInjector.InjectError.failedToAttachToTargetProcess {
+         os_log(.error,
+                """
+                Failed to attach to the target process. \
+                This is likely due to System Integrity Protection being re-enabled after installation of the helper tool. \
+                Ignoring since this is a success from an uninstallation perspective.
+                """)
       } catch CodeInjector.InjectError.failedToUnapplyPatch(patchError: .failedToFindTargetData) {
          os_log(.error,
                 "Failed to find the patched data nor the original data. Ignoring since this is a success from an uninstallation perspective.")
