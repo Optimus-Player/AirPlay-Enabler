@@ -44,7 +44,7 @@ struct InjectedCode {
    private static func areRangesValid(_ ranges: [Range<Int>],
                                       forDataCount dataCount: Int,
                                       isAddress: Bool) -> Bool {
-      if !ranges.allSatisfy { isRangeValid($0, forDataCount: dataCount, isAddress: isAddress) } {
+      if !ranges.allSatisfy({ isRangeValid($0, forDataCount: dataCount, isAddress: isAddress) }) {
          return false
       }
 
