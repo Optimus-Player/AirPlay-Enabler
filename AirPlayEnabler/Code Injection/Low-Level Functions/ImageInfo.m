@@ -10,8 +10,9 @@
 
 #import "ImageInfo.h"
 
-@import MachO;
 @import os.log;
+
+#import <mach-o/dyld_images.h>
 
 #import "Common.h"
 
